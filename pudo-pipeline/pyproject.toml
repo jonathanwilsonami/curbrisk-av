@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pudo-pipeline"
+version = "0.1.0"
+description = "CPUC Waymo deployment data pipeline for PUDO complaint risk analysis (Q3 2024 - Q2 2026)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "polars>=1.0",
+    "pyarrow>=15.0",
+    "requests>=2.31",
+    "matplotlib>=3.8",
+    "statsmodels>=0.14",
+    "pandas>=2.0",
+    "jupyter",
+]
+
+[project.scripts]
+pudo-build = "pudo_pipeline.build:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

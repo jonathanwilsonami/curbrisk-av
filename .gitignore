@@ -1,0 +1,75 @@
+# Data Files 
+data/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# Packaging / build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+# Test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# Type checkers / linters
+.mypy_cache/
+.pyright/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDEs / editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+
+# Local data / generated outputs
+data/raw/
+data/extracted/
+data/parquet/
+
+# Model / large generated artifacts
+models/
+artifacts/
+
+# Quarto / docs generated output
+_site/
+.quarto/
+
+# Python profiling / caches
+.prof/
+.cache/
