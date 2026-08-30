@@ -1,4 +1,4 @@
-"""Stage 3 / CLI: run the full pipeline and write parquet outputs.
+"""Utility script for Running the full pipeline and write parquet outputs.
 
 Usage:
     pudo-build                 # download + extract + transform + write
@@ -12,9 +12,16 @@ import argparse
 import os
 from pathlib import Path
 
+import polars as pl
+
 from . import config
 from .download import download_all, extract_all
-from .transform import build_summary, load_complaints, load_monthly
+from .transform import (
+    build_summary,
+    load_complaints,
+    load_monthly,
+    load_pudo_counts,
+)
 
 
 def main() -> None:
@@ -35,14 +42,17 @@ def main() -> None:
 
     complaints = load_complaints(extracted)
     monthly = load_monthly(extracted)
-    summary = build_summary(complaints, monthly)
+    pudo_counts = load_pudo_counts(extracted)
+    summary = build_summary(pudo_counts, monthly)
 
     complaints.write_parquet(out / "complaints.parquet")
     monthly.write_parquet(out / "monthly_activity.parquet")
+    pudo_counts.write_parquet(out / "pudo_counts.parquet")
     summary.write_parquet(out / "pudo_summary.parquet")
 
-    print(f"\n[done] wrote 3 parquet files to {out}/")
-    print(summary)
+    print(f"\n[done] wrote 4 parquet files to {out}/")
+    with pl.Config(tbl_cols=-1, tbl_width_chars=200):
+        print(summary)
 
 
 if __name__ == "__main__":

@@ -1,11 +1,12 @@
 # pudo-pipeline
 
 Reproducible pipeline for analyzing **PUDO (pick-up/drop-off) complaint risk**
-in Waymo's CPUC AV Deployment quarterly reports, covering **2024 Q3 – 2026 Q2**.
+in Waymo's CPUC AV Deployment quarterly reports, covering **2024 Q3 – 2026 Q2**
+(8 quarters).
 
 Downloads the public report zips from the CPUC website, extracts the
-Incidents-Complaints and Month-Level files, and compiles them into three
-parquet datasets ready for analysis.
+Incidents-Complaints and Month-Level files, and compiles them into four parquet
+datasets ready for analysis.
 
 ## Quick start
 
@@ -16,7 +17,7 @@ pip install -e .
 # or conda
 conda create -n pudo python=3.11 -y && conda activate pudo && pip install -e .
 
-# run the pipeline (downloads ~8 report zips from cpuc.ca.gov)
+# run the pipeline (downloads the report zips from cpuc.ca.gov)
 pudo-build
 
 # open the analysis notebook
@@ -24,34 +25,51 @@ jupyter lab notebooks/pudo_analysis.ipynb
 ```
 
 Already have the zips? Drop them in `data/raw/` named `<period_id>.zip`
-(see `src/pudo_pipeline/config.py` for period ids), or put extracted folders
-under `data/extracted/<period_id>/`, then run `pudo-build --no-download`.
+(see `PERIODS` in `src/pudo_pipeline/config.py` for the ids), or put extracted
+folders under `data/extracted/<period_id>/`, then run `pudo-build --no-download`.
 
 Set `PUDO_DATA_DIR=/some/path` to relocate the data directory.
+
+## Reporting periods
+
+The CPUC switched from Sep–Nov-style quarters to calendar quarters on
+2025-01-01, so the raw reports are: Jun–Aug 2024, Sep–Nov 2024, a Dec 2024
+one-month stub, then 2025Q1–2026Q2 — **9 raw periods**. `config.RAW_TO_ANALYSIS`
+recombines Sep–Nov + Dec into a single `2024Q4` (Sep–Dec 2024), giving **8
+analysis quarters** (`2024Q3`, `2024Q4`, `2025Q1` … `2026Q2`). Download and
+extraction still use the 9 raw ids; only the analysis frames use the 8.
+`2024Q3` (3 months) and `2024Q4` (4 months) have unequal exposure, absorbed by
+the `log(VMT)` offset in the trend model.
 
 ## Outputs (`data/parquet/`)
 
 | File | Grain | Contents |
 |---|---|---|
-| `complaints.parquet` | one row per reported incident | Y/N complaint & PUDO-collision flags as booleans; `period_id`, `year`, `quarter`, `company`, `source_file` |
-| `monthly_activity.parquet` | one row per month | trips, VMT by period (P1 deadhead / P2 en-route / P3 passenger), `vmt_total`, PMT, passengers |
-| `pudo_summary.parquet` | one row per reporting period | PUDO complaint/travel-lane/collision counts joined to VMT & trips, rates per 100k |
+| `complaints.parquet` | one row per ride (**2025Q1+ only** — the 2024 reports have no ride-level data) | Y/N complaint & PUDO-collision flags as booleans; `period_id`, `raw_period`, `year`, `quarter`, `company`, `source_file` |
+| `monthly_activity.parquet` | one row per month | Waymo driverless trips, VMT by phase (P1 deadhead / P2 en-route / P3 passenger), `vmt_total`, PMT, passengers |
+| `pudo_counts.parquet` | one row per analysis period | `pudo_complaints`, `pudo_collisions`, `ride_rows`, `pudo_travel_lane` (always null — redacted), `schema` (`aggregate` / `microdata`) |
+| `pudo_summary.parquet` | one row per analysis period | `pudo_counts` joined to VMT & trips, with rates per 100k VMT / 100k trips / million rides |
 
 ## Data notes & caveats
 
-- **TCPID is the carrier permit ID** (identifies Waymo), not a record key —
-  there is no row-level join across files. Complaints join to exposure at the
-  reporting-period level.
-- **Incident timestamps and locations are redacted** in the public files, so
-  complaints carry period-level dates only (`month` is null). Monthly VMT has
-  real Year/Month columns.
-- **Reporting periods changed 2025-01-01** from Sep–Nov style quarters to
-  calendar quarters. The 2024 portion of the window is covered by the
-  Jun–Aug 2024, Sep–Nov 2024, and Dec 2024 (one-month stub) reports. The
-  Poisson trend model in the notebook handles unequal exposure via the
-  VMT offset.
-- The Jun–Aug 2024 zip also contains Cruise files; the loader keeps whatever
-  matches the complaint/month-level patterns — filter `company` or inspect
-  `source_file` if you extend to multi-carrier analysis.
+- **TCPID** identifies the carrier (Waymo `PSG0038152`), not a record — there is
+  no row-level join across files; complaints join to exposure at the period
+  level. The ride-level complaint exports also use a transposed variant
+  `PSG0031852` on most rows; both are treated as Waymo (`config.WAYMO_TCPIDS`).
+- **Two complaint-file schemas.** 2024 reports give a one-row *aggregate* table
+  (integer `ComplaintsPUDO`); 2025Q1+ give *ride-level microdata* (~1M rows per
+  part, Y/N `ComplaintPUDO` flag). `load_pudo_counts` handles both. Because the
+  eras are collected differently, expect a possible level shift at the boundary.
+- **Redaction.** Incident timestamps and locations are redacted, so complaints
+  carry period-level dates only (`month` is null). `PUDOTravelLane` is redacted
+  in every file — reported as null, never zero.
+- **Month-Level numerics** are comma-grouped / quoted from 2024P4 on
+  (`"354,124"`); the loader strips separators before casting and warns loudly if
+  a whole column still fails to parse or an expected column is missing.
+- **Filename drift.** The Month-Level file is variously `AV_Month-Level*.csv`,
+  `AV_ Month_Level-Deployment.csv`, or (2026Q1/Q2) `AV_Month_Part0*.csv`; the
+  loader matches all of these and ignores the `Monthly_Tract` file.
+- The Jun–Aug 2024 zip also contains **Cruise** files and every report ships a
+  header-only **Drivered** tree; both are filtered out by path + TCPID.
 - Source page: CPUC AV Program Quarterly Reporting
   (cpuc.ca.gov → Licensing → Autonomous Vehicle Programs → Quarterly Reporting).

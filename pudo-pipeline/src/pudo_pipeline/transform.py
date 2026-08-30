@@ -2,45 +2,78 @@
 
 Outputs
 -------
-complaints    one row per reported incident, Y/N flags as booleans,
-              tagged with period_id / year / quarter / company.
-monthly       one row per (year, month) of fleet activity (trips, VMT, PMT).
-summary       one row per reporting period: PUDO counts joined to exposure,
-              with complaints-per-100k-VMT rates.
+complaints    one row per ride (2025Q1+ microdata only), Y/N flags as booleans,
+              tagged with analysis period_id / year / quarter / company. The
+              2024 reports have no ride-level data (aggregate only) so they are
+              absent here - use ``pudo_counts`` for their numerators.
+monthly       one row per (year, month) of Waymo driverless fleet activity
+              (trips, VMT, PMT).
+pudo_counts   one row per analysis period: PUDO complaint / collision counts,
+              derived from whichever schema that period's files use.
+summary       one row per analysis period: pudo_counts joined to exposure, with
+              complaints-per-100k-VMT rates.
 
 Notes
 -----
 * TCPID is the carrier's CPUC permit number - it identifies Waymo, not a
-  record. There is no row-level join key across files; complaint counts and
-  VMT join at the reporting-period level.
+  record. Rows are filtered to ``WAYMO_TCPIDS`` (the correct ``PSG0038152`` plus
+  the transposed ``PSG0031852`` that Waymo's complaint exports use) to drop the
+  Cruise files bundled in the Jun-Aug 2024 zip. Files under a ``drivered`` path
+  or a ``cruise`` path are skipped.
+* Numeric fields are comma-grouped and sometimes currency-formatted from
+  2024P4 onward (``"354,124"``, ``"1,625,253.10"``). ``_to_float`` strips ``,``
+  and ``$`` before casting; a loud warning fires if a whole non-empty column
+  still nulls out, or an expected column is missing.
 * TimeofIncident is redacted, so complaints carry period-level dates only
-  (month is null). Month_Level has true Year/Month, so quarter columns there
-  are real calendar quarters.
-* Columns that are entirely "Redacted" or NULL are dropped; per-row
-  "Redacted" strings in kept columns become nulls.
+  (month is null). Month_Level has true Year/Month.
+* PUDOTravelLane is redacted in every file - reported as null, never zero.
 """
 
 from __future__ import annotations
 
+import re
+import warnings
 from pathlib import Path
 
 import polars as pl
 
 from .config import (
+    AGG_PUDO_COLLISIONS_COL,
+    AGG_PUDO_COMPLAINTS_COL,
+    ANALYSIS_PERIOD_META,
+    ANALYSIS_PERIOD_MONTHS,
     COMPANY,
     COMPLAINT_FLAGS,
     COMPLAINT_KEEP,
     COLLISION_PUDO_FLAGS,
     MONTH_LEVEL_KEEP,
+    MONTH_LEVEL_VMT_COLS,
     PERIODS,
+    RAW_TO_ANALYSIS,
+    WAYMO_TCPIDS,
 )
+
+_MONTH_LEVEL_RE = re.compile(r"month[_ -]?level|month[_ -]?part\d", re.IGNORECASE)
+_MONTHLY_TRACT_RE = re.compile(r"monthly[_ -]?tract", re.IGNORECASE)
 
 
 def _read_csv_str(path: Path) -> pl.DataFrame:
     """Read everything as strings; normalize 'Redacted'/'NULL' to null."""
     df = pl.read_csv(path, infer_schema_length=0, ignore_errors=True)
     return df.with_columns(
-        pl.all().str.strip_chars().replace(["Redacted", "NULL", ""], None)
+        pl.all().str.strip_chars().replace(["Redacted", "NULL", "N/A", ""], None)
+    )
+
+
+def _to_float(col: str) -> pl.Expr:
+    """Strip thousands separators / currency symbols, then cast to Float64."""
+    return (
+        pl.col(col)
+        .str.replace_all(",", "")
+        .str.replace_all(r"\$", "")
+        .str.strip_chars()
+        .cast(pl.Float64, strict=False)
+        .alias(col)
     )
 
 
@@ -48,41 +81,261 @@ def _flag_to_bool(col: str) -> pl.Expr:
     return (pl.col(col) == "Y").fill_null(False).alias(col)
 
 
-def _period_meta(period_id: str) -> dict:
-    months = PERIODS[period_id][1]
-    last_year, last_month = months[-1]
-    return {
-        "period_id": period_id,
-        "year": last_year,
-        "quarter": (last_month - 1) // 3 + 1,  # quarter of period end
-        "company": COMPANY,
+def _warn_missing_columns(path: Path, expected: list[str], present: list[str]) -> None:
+    missing = [c for c in expected if c not in present]
+    if missing:
+        warnings.warn(
+            f"{path.name}: expected column(s) absent: {missing}", stacklevel=3
+        )
+
+
+def _cast_numeric_with_warning(df: pl.DataFrame, cols: list[str], path: Path) -> pl.DataFrame:
+    """Cast ``cols`` to float; warn loudly if a non-empty column nulls out."""
+    had_values = {
+        c: (df.height > 0 and df[c].null_count() < df.height)
+        for c in cols
+        if c in df.columns
     }
+    df = df.with_columns([_to_float(c) for c in cols if c in df.columns])
+    for c, had in had_values.items():
+        if had and df[c].null_count() == df.height:
+            warnings.warn(
+                f"{path.name}: column {c!r} cast to ALL-NULL "
+                f"(unparseable format - check for stray characters)",
+                stacklevel=3,
+            )
+    return df
 
 
-def load_complaints(extract_dir: Path) -> pl.DataFrame:
+def _is_drivered(path: Path) -> bool:
+    return "drivered" in str(path).lower()
+
+
+def _is_other_carrier(path: Path) -> bool:
+    """Cruise files are bundled in the Jun-Aug 2024 zip under a 'Cruise-...' dir."""
+    return "cruise" in str(path).lower()
+
+
+def _filter_waymo(df: pl.DataFrame) -> pl.DataFrame:
+    if "TCPID" in df.columns:
+        return df.filter(pl.col("TCPID").is_in(WAYMO_TCPIDS))
+    return df
+
+
+# --------------------------------------------------------------------------- #
+# monthly activity / exposure
+# --------------------------------------------------------------------------- #
+def _month_level_files(pdir: Path) -> list[Path]:
+    out = []
+    for f in sorted(pdir.rglob("*.csv")):
+        name = f.name
+        if _MONTHLY_TRACT_RE.search(name):
+            continue
+        if not _MONTH_LEVEL_RE.search(name):
+            continue
+        if _is_drivered(f) or _is_other_carrier(f):
+            continue
+        out.append(f)
+    return out
+
+
+def load_monthly(extract_dir: Path) -> pl.DataFrame:
     frames = []
-    for period_id in PERIODS:
-        pdir = extract_dir / period_id
+    for raw_period in PERIODS:
+        pdir = extract_dir / raw_period
         if not pdir.exists():
             continue
-        files = sorted(
-            f
-            for f in pdir.rglob("*.csv")
-            if "complaint" in f.name.lower().replace("-", "_")
-            and "part" in f.name.lower()
-        )
-        # Older periods may not split into parts - fall back to any
-        # complaints file that actually has rows.
+        files = _month_level_files(pdir)
         if not files:
-            files = [
-                f
-                for f in pdir.rglob("*.csv")
-                if "complaint" in f.name.lower().replace("-", "_")
-            ]
+            warnings.warn(f"{raw_period}: no Month_Level file found", stacklevel=2)
         for f in files:
             df = _read_csv_str(f)
             if df.height == 0:
                 continue
+            _warn_missing_columns(f, MONTH_LEVEL_KEEP, df.columns)
+            keep = [c for c in MONTH_LEVEL_KEEP if c in df.columns]
+            df = _filter_waymo(df.select(keep))
+            if df.height == 0:
+                continue
+            numeric = [c for c in keep if c != "TCPID"]
+            df = _cast_numeric_with_warning(df, numeric, f)
+            df = df.with_columns(
+                pl.lit(raw_period).alias("period_id"),
+                pl.lit(RAW_TO_ANALYSIS[raw_period]).alias("analysis_period"),
+                pl.lit(COMPANY).alias("company"),
+            )
+            frames.append(df)
+    if not frames:
+        raise FileNotFoundError(f"No Month_Level CSVs found under {extract_dir}")
+
+    out = pl.concat(frames, how="diagonal")
+    out = out.with_columns(
+        pl.col("Year").cast(pl.Int32, strict=False).alias("year"),
+        pl.col("Month").cast(pl.Int8, strict=False).alias("month"),
+    )
+    vmt_present = pl.any_horizontal(
+        [pl.col(c).is_not_null() for c in MONTH_LEVEL_VMT_COLS]
+    )
+    out = out.with_columns(
+        ((pl.col("month") - 1) // 3 + 1).cast(pl.Int8).alias("quarter"),
+        pl.when(vmt_present)
+        .then(pl.sum_horizontal([pl.col(c).fill_null(0) for c in MONTH_LEVEL_VMT_COLS]))
+        .otherwise(None)
+        .alias("vmt_total"),
+    )
+    # A month can be restated in a later report; keep the row that actually
+    # carries VMT (and, among those, the latest submission by period_id).
+    out = (
+        out.with_columns(pl.col("vmt_total").is_not_null().alias("_has_vmt"))
+        .sort(["year", "month", "_has_vmt", "period_id"])
+        .unique(subset=["year", "month"], keep="last")
+        .drop(["Year", "Month", "_has_vmt"])
+        .sort(["year", "month"])
+    )
+    return out
+
+
+# --------------------------------------------------------------------------- #
+# complaint / collision counts (numerator)
+# --------------------------------------------------------------------------- #
+def _complaint_files(pdir: Path) -> list[Path]:
+    return [
+        f
+        for f in sorted(pdir.rglob("*.csv"))
+        if "complaint" in f.name.lower().replace("-", "_")
+        and not _is_drivered(f)
+        and not _is_other_carrier(f)
+    ]
+
+
+def _read_waymo(path: Path) -> pl.DataFrame:
+    return _filter_waymo(_read_csv_str(path))
+
+
+def _microdata_pudo_counts(df: pl.DataFrame) -> tuple[int, int, int]:
+    """(pudo_complaints, pudo_collisions, ride_rows) from one microdata frame."""
+    complaints = int(df.select((pl.col("ComplaintPUDO") == "Y").sum()).item())
+    coll_cols = [c for c in COLLISION_PUDO_FLAGS if c in df.columns]
+    if coll_cols:
+        collisions = int(
+            df.select(
+                pl.any_horizontal([pl.col(c) == "Y" for c in coll_cols]).sum()
+            ).item()
+        )
+    else:
+        collisions = 0
+    return complaints, collisions, df.height
+
+
+def load_pudo_counts(extract_dir: Path) -> pl.DataFrame:
+    """One row per analysis period with PUDO complaint / collision counts.
+
+    Handles both file schemas: the 2024 wide aggregate (one summed row,
+    ``ComplaintsPUDO``) and the 2025Q1+ ride-level microdata (Y/N
+    ``ComplaintPUDO`` flag). ``pudo_travel_lane`` is always null (redacted).
+    """
+    recs = []
+    for raw_period in PERIODS:
+        pdir = extract_dir / raw_period
+        if not pdir.exists():
+            continue
+
+        schema = None
+        agg_frames: list[pl.DataFrame] = []
+        m_complaints = m_collisions = m_rows = 0
+
+        for f in _complaint_files(pdir):
+            df = _read_waymo(f)
+            if df.height == 0:
+                continue
+            if AGG_PUDO_COMPLAINTS_COL in df.columns:
+                schema = "aggregate"
+                agg_frames.append(df)
+            elif "ComplaintPUDO" in df.columns:
+                schema = "microdata"
+                c, k, n = _microdata_pudo_counts(df)
+                m_complaints += c
+                m_collisions += k
+                m_rows += n
+            else:
+                warnings.warn(
+                    f"{f.name}: no recognised PUDO complaint column - skipped",
+                    stacklevel=2,
+                )
+
+        if schema is None:
+            warnings.warn(
+                f"{raw_period}: no usable Waymo complaint file found", stacklevel=2
+            )
+            continue
+
+        if schema == "aggregate":
+            agg = pl.concat(agg_frames, how="diagonal")
+            _warn_missing_columns(
+                pdir, [AGG_PUDO_COMPLAINTS_COL, AGG_PUDO_COLLISIONS_COL], agg.columns
+            )
+            complaints = int(
+                agg.select(_to_float(AGG_PUDO_COMPLAINTS_COL)).sum().item() or 0
+            )
+            if AGG_PUDO_COLLISIONS_COL in agg.columns:
+                collisions = agg.select(_to_float(AGG_PUDO_COLLISIONS_COL)).sum().item()
+                collisions = None if collisions is None else int(collisions)
+            else:
+                collisions = None
+            ride_rows = None
+        else:
+            complaints = m_complaints
+            collisions = m_collisions
+            ride_rows = m_rows
+
+        recs.append(
+            {
+                "raw_period": raw_period,
+                "period_id": RAW_TO_ANALYSIS[raw_period],
+                "schema": schema,
+                "pudo_complaints": complaints,
+                "pudo_collisions": collisions,
+                "ride_rows": ride_rows,
+            }
+        )
+
+    if not recs:
+        raise FileNotFoundError(f"No complaint CSVs found under {extract_dir}")
+
+    raw = pl.DataFrame(recs)
+    counts = (
+        raw.group_by("period_id")
+        .agg(
+            pl.col("pudo_complaints").sum(),
+            pl.col("pudo_collisions").sum(),
+            pl.col("ride_rows").sum().alias("ride_rows"),
+            pl.col("schema").unique().sort().str.join("+").alias("schema"),
+        )
+        .with_columns(
+            pl.lit(None, dtype=pl.Int64).alias("pudo_travel_lane"),  # redacted
+            pl.when(pl.col("schema").str.contains("microdata"))
+            .then(pl.col("ride_rows"))
+            .otherwise(None)
+            .alias("ride_rows"),
+        )
+        .sort("period_id")
+    )
+    return counts
+
+
+# --------------------------------------------------------------------------- #
+# complaints (ride-level, microdata periods only - for inspection / sampling)
+# --------------------------------------------------------------------------- #
+def load_complaints(extract_dir: Path) -> pl.DataFrame:
+    frames = []
+    for raw_period in PERIODS:
+        pdir = extract_dir / raw_period
+        if not pdir.exists():
+            continue
+        for f in _complaint_files(pdir):
+            df = _read_waymo(f)
+            if df.height == 0 or "ComplaintPUDO" not in df.columns:
+                continue  # aggregate schema / header-only stub
             keep = [c for c in COMPLAINT_KEEP if c in df.columns]
             df = df.select(keep).with_columns(
                 [
@@ -91,9 +344,10 @@ def load_complaints(extract_dir: Path) -> pl.DataFrame:
                     if c in df.columns
                 ]
             )
-            meta = _period_meta(period_id)
+            meta = ANALYSIS_PERIOD_META[RAW_TO_ANALYSIS[raw_period]]
             df = df.with_columns(
                 pl.lit(meta["period_id"]).alias("period_id"),
+                pl.lit(raw_period).alias("raw_period"),
                 pl.lit(meta["year"]).cast(pl.Int32).alias("year"),
                 pl.lit(meta["quarter"]).cast(pl.Int8).alias("quarter"),
                 pl.lit(None, dtype=pl.Int8).alias("month"),  # redacted at source
@@ -102,94 +356,56 @@ def load_complaints(extract_dir: Path) -> pl.DataFrame:
             )
             frames.append(df)
     if not frames:
-        raise FileNotFoundError(f"No complaint CSVs found under {extract_dir}")
+        raise FileNotFoundError(
+            f"No ride-level complaint CSVs found under {extract_dir}"
+        )
     out = pl.concat(frames, how="diagonal")
-    # A collision during PUDO counts as a PUDO-related incident too
     pudo_collision_cols = [c for c in COLLISION_PUDO_FLAGS if c in out.columns]
     return out.with_columns(
         pl.any_horizontal(pudo_collision_cols).alias("CollisionPUDOAny")
     )
 
 
-def load_monthly(extract_dir: Path) -> pl.DataFrame:
-    frames = []
-    for period_id in PERIODS:
-        pdir = extract_dir / period_id
-        if not pdir.exists():
-            continue
-        for f in sorted(pdir.rglob("*.csv")):
-            if "month_level" not in f.name.lower().replace(" ", "_").replace("-", "_"):
-                continue
-            df = _read_csv_str(f)
-            keep = [c for c in MONTH_LEVEL_KEEP if c in df.columns]
-            df = df.select(keep).with_columns(
-                pl.lit(period_id).alias("period_id"),
-                pl.lit(COMPANY).alias("company"),
-            )
-            frames.append(df)
-    if not frames:
-        raise FileNotFoundError(f"No Month_Level CSVs found under {extract_dir}")
-    out = pl.concat(frames, how="diagonal")
-    numeric = [c for c in MONTH_LEVEL_KEEP if c not in ("TCPID",)]
-    out = out.with_columns(
-        [pl.col(c).cast(pl.Float64, strict=False) for c in numeric]
-    ).with_columns(
-        pl.col("Year").cast(pl.Int32).alias("year"),
-        pl.col("Month").cast(pl.Int8).alias("month"),
-    )
-    out = out.with_columns(
-        ((pl.col("month") - 1) // 3 + 1).cast(pl.Int8).alias("quarter"),
-        (
-            pl.col("TotalVMTPeriod1").fill_null(0)
-            + pl.col("TotalVMTPeriod2").fill_null(0)
-            + pl.col("TotalVMTPeriod3").fill_null(0)
-        ).alias("vmt_total"),
-    )
-    # Reports occasionally restate a month; keep the latest submission
-    return (
-        out.sort("period_id")
-        .unique(subset=["year", "month"], keep="last")
-        .drop(["Year", "Month"])
-        .sort(["year", "month"])
-    )
-
-
-def build_summary(complaints: pl.DataFrame, monthly: pl.DataFrame) -> pl.DataFrame:
-    counts = complaints.group_by("period_id").agg(
-        pl.col("ComplaintPUDO").sum().alias("pudo_complaints"),
-        pl.col("PUDOTravelLane").sum().alias("pudo_travel_lane"),
-        pl.col("CollisionPUDOAny").sum().alias("pudo_collisions"),
-        pl.len().alias("total_incident_rows"),
-    )
-
-    # Exposure: sum monthly VMT over the exact months each period covers
+# --------------------------------------------------------------------------- #
+# period summary
+# --------------------------------------------------------------------------- #
+def build_summary(pudo_counts: pl.DataFrame, monthly: pl.DataFrame) -> pl.DataFrame:
+    # Exposure: sum monthly VMT / trips over the exact months each analysis
+    # period covers.
     month_map = pl.DataFrame(
         [
             {"period_id": pid, "year": y, "month": m}
-            for pid, (_, months) in PERIODS.items()
+            for pid, months in ANALYSIS_PERIOD_MONTHS.items()
             for (y, m) in months
         ]
     ).with_columns(pl.col("year").cast(pl.Int32), pl.col("month").cast(pl.Int8))
+
     exposure = (
         month_map.join(monthly, on=["year", "month"], how="left")
         .group_by("period_id")
         .agg(
             pl.col("vmt_total").sum().alias("vmt"),
             pl.col("TotalTrips").sum().alias("trips"),
+            pl.col("vmt_total").is_not_null().sum().alias("months_with_vmt"),
             pl.len().alias("n_months"),
         )
     )
-
-    # A period whose files are missing sums to 0.0, not null - make that
-    # explicit so rates come out null instead of infinite.
+    # A period whose monthly rows are all missing sums to 0.0, not null - make
+    # that explicit so rates come out null instead of infinite / zero.
     exposure = exposure.with_columns(
-        pl.when(pl.col("vmt") > 0).then(pl.col("vmt")).otherwise(None).alias("vmt"),
-        pl.when(pl.col("trips") > 0).then(pl.col("trips")).otherwise(None).alias("trips"),
+        pl.when(pl.col("months_with_vmt") > 0)
+        .then(pl.col("vmt"))
+        .otherwise(None)
+        .alias("vmt"),
+        pl.when(pl.col("months_with_vmt") > 0)
+        .then(pl.col("trips"))
+        .otherwise(None)
+        .alias("trips"),
     )
 
-    meta = pl.DataFrame([_period_meta(p) for p in PERIODS])
+    meta = pl.DataFrame(list(ANALYSIS_PERIOD_META.values()))
     return (
-        meta.join(counts, on="period_id", how="left")
+        meta.join(pudo_counts, on="period_id", how="left")
         .join(exposure, on="period_id", how="left")
         .with_columns(
             (pl.col("pudo_complaints") / pl.col("vmt") * 100_000).alias(
@@ -197,6 +413,9 @@ def build_summary(complaints: pl.DataFrame, monthly: pl.DataFrame) -> pl.DataFra
             ),
             (pl.col("pudo_complaints") / pl.col("trips") * 100_000).alias(
                 "pudo_per_100k_trips"
+            ),
+            (pl.col("pudo_complaints") / pl.col("ride_rows") * 1_000_000).alias(
+                "pudo_per_million_rides"
             ),
         )
         .sort("period_id")

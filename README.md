@@ -34,21 +34,23 @@ Public data comes from the **California Public Utilities Commission Autonomous V
 
 The reproducible [`pudo-pipeline`](pudo-pipeline/) package downloads and processes the quarterly reports into analysis-ready Parquet datasets containing:
 
-* PUDO complaints and incidents
-* Quarterly and monthly vehicle activity
-* Trips and vehicle miles traveled
-* Exposure-adjusted PUDO complaint rates
+* PUDO complaint and PUDO-collision counts per quarter (from two different CPUC file schemas — a 2024 aggregate table and 2025+ ride-level microdata)
+* Monthly Waymo driverless vehicle activity: trips and vehicle miles traveled
+* Exposure-adjusted PUDO complaint rates (per 100k VMT) and the trend fit
 
 ## Repository Structure
 
 ```text
-curbrisk-av/
-├── pudo-pipeline/      # CPUC ingestion and data preparation
-├── notebooks/          # Risk and statistical analysis
-├── data/               # Generated analysis datasets
-├── figures/            # Charts and risk visualizations
+PUDO/
+├── pudo-pipeline/            # the package
+│   ├── src/pudo_pipeline/    # CPUC ingestion + data preparation (pudo-build)
+│   ├── notebooks/            # pudo_analysis.ipynb — rates, trend test, risk chart
+│   └── data/parquet/         # generated datasets (gitignored)
+├── CLAUDE.md                 # working context + source-data facts
 └── README.md
 ```
+
+See [`pudo-pipeline/README.md`](pudo-pipeline/README.md) for how to run it.
 
 ## Goal
 
