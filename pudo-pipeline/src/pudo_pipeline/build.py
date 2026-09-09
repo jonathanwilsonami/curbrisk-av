@@ -45,14 +45,19 @@ def main() -> None:
     pudo_counts = load_pudo_counts(extracted)
     summary = build_summary(pudo_counts, monthly)
 
+    # The minimal deliverable: one label + the numerator + the headline
+    # denominator, one row per analysis period.
+    final_summary = summary.select("period_label", "trips", "pudo_complaints")
+
     complaints.write_parquet(out / "complaints.parquet")
     monthly.write_parquet(out / "monthly_activity.parquet")
     pudo_counts.write_parquet(out / "pudo_counts.parquet")
     summary.write_parquet(out / "pudo_summary.parquet")
+    final_summary.write_parquet(out / "final_pudo_summary.parquet")
 
-    print(f"\n[done] wrote 4 parquet files to {out}/")
+    print(f"\n[done] wrote 5 parquet files to {out}/")
     with pl.Config(tbl_cols=-1, tbl_width_chars=200):
-        print(summary)
+        print(final_summary)
 
 
 if __name__ == "__main__":

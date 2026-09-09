@@ -13,18 +13,20 @@ The project focuses on three fundamental questions in risk analysis:
    Assess the potential severity and impact of those hazards.
 
 3. **How likely are they?**
-   Estimate the frequency of PUDO-related complaints using CPUC data from **2024 Q3 through 2026 Q2**, while controlling for vehicle exposure using **vehicle miles traveled (VMT)**.
+   Estimate the frequency of PUDO-related complaints using CPUC data from **2024 Q3 through 2026 Q2**, while controlling for vehicle exposure using **vehicle trips**.
 
 ## Analysis
 
 The analysis examines whether PUDO complaint risk is **increasing, decreasing, or remaining stable over time**.
 
-Rather than comparing raw complaint counts alone, complaint frequency is normalized by exposure:
+Rather than comparing raw complaint counts alone, complaint frequency is normalized by exposure. The primary exposure measure is **vehicle trips** — every completed trip has exactly one pick-up and one drop-off, so trips count PUDO *opportunities* directly:
 
 $$
 \text{PUDO Risk Rate} =
-\frac{\text{PUDO Complaints}}{\text{Vehicle Miles Traveled}}
+\frac{\text{PUDO Complaints}}{\text{Vehicle Trips}}
 $$
+
+Vehicle miles traveled (VMT, total and by trip phase) is also computed and reported — it serves as a robustness check. The trend direction is the same under trips and under every VMT variant.
 
 Exposure-adjusted rates and statistical trend models are then used to evaluate changes across reporting periods and place PUDO hazards on a **likelihood × consequence risk matrix**.
 
@@ -35,8 +37,8 @@ Public data comes from the **California Public Utilities Commission Autonomous V
 The reproducible [`pudo-pipeline`](pudo-pipeline/) package downloads and processes the quarterly reports into analysis-ready Parquet datasets containing:
 
 * PUDO complaint and PUDO-collision counts per quarter (from two different CPUC file schemas — a 2024 aggregate table and 2025+ ride-level microdata)
-* Monthly Waymo driverless vehicle activity: trips and vehicle miles traveled
-* Exposure-adjusted PUDO complaint rates (per 100k VMT) and the trend fit
+* Monthly Waymo driverless vehicle activity: trips (primary exposure) and vehicle miles traveled
+* Exposure-adjusted PUDO complaint rates (per 100k trips, plus per-100k-VMT cross-checks) and the trend fit
 
 ## Repository Structure
 

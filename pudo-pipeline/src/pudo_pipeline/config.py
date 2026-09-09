@@ -10,6 +10,13 @@ single ``2024Q4`` analysis period (Sep-Dec 2024) so the window is exactly eight
 quarters. The unequal month counts (2024Q3 = 3 months, 2024Q4 = 4 months) are
 absorbed by the VMT offset in the Poisson trend model. See ``RAW_TO_ANALYSIS``.
 
+``period_id`` stays a clean ``YYYYQn`` string for sorting / filtering / joining.
+Because the two 2024 analysis periods are NOT the calendar quarters their names
+suggest (``2024Q3`` = Jun-Aug, ``2024Q4`` = Sep-Dec), every period also carries
+``period_label`` (e.g. ``"2024 Q3 (Jun-Aug)"``), ``window_start`` /
+``window_end`` dates, and an ``is_calendar_quarter`` flag - see
+``ANALYSIS_PERIOD_META``. 2025Q1 onward are true calendar quarters.
+
 Complaint rows have redacted timestamps, so a complaint can only be attributed
 to the reporting period of the file it came from. VMT (Month_Level) has real
 Year/Month columns, so exposure is summed over the exact months of each
@@ -27,6 +34,8 @@ Source-data facts worth not re-deriving:
   out by ``WAYMO_TCPID`` + a ``drivered`` path check.
 """
 
+import calendar
+from datetime import date
 from pathlib import Path
 
 CPUC_MEDIA = (
@@ -94,15 +103,39 @@ for _raw, (_zip, _months) in PERIODS.items():
 
 COMPANY = "Waymo"
 
-# static per-analysis-period metadata (real calendar quarter of the window)
-ANALYSIS_PERIOD_META: dict[str, dict] = {
-    pid: {
+_MONTH_ABBR = ("", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+
+def _period_meta(pid: str) -> dict:
+    """Static metadata for one analysis period, incl. the real month window.
+
+    ``period_id`` (``YYYYQn``) is kept for machine use; ``period_label`` spells
+    out the actual coverage because 2024's names are not calendar quarters.
+    """
+    months = ANALYSIS_PERIOD_MONTHS[pid]
+    year, quarter = int(pid[:4]), int(pid[-1])
+    (y0, m0), (y1, m1) = months[0], months[-1]
+    is_calendar_quarter = months == [(year, 3 * quarter - 2),
+                                     (year, 3 * quarter - 1),
+                                     (year, 3 * quarter)]
+    label = f"{year} Q{quarter}"
+    if not is_calendar_quarter:
+        label += f" ({_MONTH_ABBR[m0]}-{_MONTH_ABBR[m1]})"
+    return {
         "period_id": pid,
-        "year": int(pid[:4]),
-        "quarter": int(pid[-1]),
+        "period_label": label,
+        "window_start": date(y0, m0, 1),
+        "window_end": date(y1, m1, calendar.monthrange(y1, m1)[1]),
+        "is_calendar_quarter": is_calendar_quarter,
+        "year": year,
+        "quarter": quarter,
         "company": COMPANY,
     }
-    for pid in ANALYSIS_PERIODS
+
+
+ANALYSIS_PERIOD_META: dict[str, dict] = {
+    pid: _period_meta(pid) for pid in ANALYSIS_PERIODS
 }
 
 # Project-relative data layout (override with PUDO_DATA_DIR env var)
@@ -147,6 +180,17 @@ COMPLAINT_KEEP = ["TCPID"] + COLLISION_PUDO_FLAGS + COMPLAINT_FLAGS
 # Incidents-Complaints AGGREGATE columns (2024 reports: one summed row).
 AGG_PUDO_COMPLAINTS_COL = "ComplaintsPUDO"
 AGG_PUDO_COLLISIONS_COL = "CollisionsPUDOAll"
+
+# All complaint-category count columns, for "PUDO as a share of all complaints".
+# Aggregate schema uses the plural names; microdata uses COMPLAINT_FLAGS (singular).
+AGG_COMPLAINT_COLS = [
+    "ComplaintsSafety",
+    "ComplaintsPUDO",
+    "ComplaintsAccessibility",
+    "ComplaintsWAV",
+    "ComplaintsCustomerService",
+    "ComplaintsOther",
+]
 
 # Month_Level columns (denominator / activity)
 MONTH_LEVEL_KEEP = [

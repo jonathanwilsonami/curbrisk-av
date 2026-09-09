@@ -39,14 +39,27 @@ src/pudo_pipeline/
                 column keeps, WAYMO_TCPIDS
   download.py   fetch + unzip (idempotent, handles nested zips)
   transform.py  CSV -> complaints / monthly / pudo_counts / summary frames
-  build.py      `pudo-build` CLI, writes 4 parquet files
+  build.py      `pudo-build` CLI, writes 5 parquet files
 notebooks/pudo_analysis.ipynb   plots + Poisson/NB trend test
 ```
 
 Outputs land in `data/parquet/` (override root with `PUDO_DATA_DIR`):
 `complaints.parquet` (ride-level, 2025Q1+ only), `monthly_activity.parquet`,
-`pudo_counts.parquet` (numerator, one row per analysis period),
-`pudo_summary.parquet` (the deliverable table).
+`pudo_counts.parquet` (numerator + `all_complaints`, one row per analysis period),
+`pudo_summary.parquet` (the full deliverable table), and
+`final_pudo_summary.parquet` (just `period_label` / `trips` / `pudo_complaints`,
+one row per period — the minimal hand-off).
+
+Every period carries `period_id` (clean `YYYYQn` for sort/filter/join),
+`period_label` (`"2024 Q3 (Jun-Aug)"` etc. — 2024's names are not calendar
+quarters), `window_start` / `window_end` dates, and `is_calendar_quarter`
+(false only for 2024Q3/2024Q4). Set in `config._period_meta`.
+
+`pudo_summary` also carries five exposure denominators and a matching
+`pudo_per_100k_*` rate for each (`vmt` / `vmt_total`, `vmt_p1`, `vmt_p3`,
+`vmt_p1_p3`, `trips`), plus `deadhead_share` (= `vmt_p1 / vmt_total`) and
+`pudo_share_of_complaints` (= `pudo_complaints / all_complaints`).
+`build_summary` takes `(pudo_counts, monthly)`.
 
 ## Source data facts (established, don't re-derive)
 
@@ -102,24 +115,37 @@ Outputs land in `data/parquet/` (override root with `PUDO_DATA_DIR`):
   2025Q2 (54) matches the independent `Incidents_Location.CollisionsPUDO` total,
   so the flag logic is sound.
 
-## Analysis plan
+## Analysis plan (implemented in the notebook)
 
 1. Numerator: `pudo_counts.pudo_complaints` per analysis period (aggregate
    `ComplaintsPUDO` for 2024, microdata `ComplaintPUDO=="Y"` sum for 2025Q1+).
-2. Denominator: period VMT summed from `monthly` over the exact covered months.
-3. Rate: complaints per 100k VMT. **Report raw counts and the rate side by
-   side** — raw counts rise because Waymo scaled ~6×; the rate is the finding.
-4. Trend test: Poisson GLM `complaints ~ t`, `offset=log(VMT)`; check Pearson
-   χ²/df (it's ≈5 → overdispersed) and report the **Negative Binomial** (alpha
-   by MLE) as primary, quasi-Poisson as a cross-check, plus a drop-2024Q3
-   robustness refit. Notebook guards against fewer than 4 periods with exposure.
-5. Risk chart: high likelihood / low severity → medium "monitor and mitigate".
-   Trend is falling/flat → direction arrow down/flat, mitigation not urgent.
+2. Denominator: five options, all summed from `monthly` over the covered months —
+   `vmt_total` (assignment default), `vmt_p1` (deadhead→pickup, tightest PUDO
+   proxy), `vmt_p3` (passenger→dropoff), `vmt_p1_p3`, and `trips` (one PU + one
+   DO per trip; best-justified on first principles). Report VMT; note trips.
+3. **§1 Baseline** — per-period rate with an exact Poisson 95% CI (χ² method,
+   `scipy.stats.chi2`), the pooled rate (headline: ~0.31 / 100k mi), rate
+   dispersion (CV, VMR), and PUDO's share of all complaint categories.
+4. **§2 Distribution** — 3-panel counts/exposure/rate, rate with CI error bars,
+   an indexed-to-100 chart, small multiples of the rate under each denominator,
+   and the deadhead share over time.
+5. **§3 Trend** — Poisson GLM `complaints ~ t`, `offset=log(exposure)`; auto-
+   switch to Negative Binomial (alpha by MLE) when Pearson χ²/df > 1.5 (it's
+   ≈5). Refit under every denominator; Mann-Kendall (`kendalltau`) as a
+   distribution-free check; fitted-trend + CI ribbon overlay; leave-one-out and
+   drop-2024Q3 sensitivity. Guard: raises if <4 periods have exposure.
+6. Risk chart: high likelihood / low severity → medium "monitor and mitigate";
+   direction arrow flat-to-down.
 
-Current result: exposure-adjusted rate falls ≈ −13 %/quarter (NB, 95% CI roughly
-−20 % to −5 %, p ≈ 0.001), but almost all of the decline is the 2024 ramp-up;
-roughly flat at ~0.25–0.28 complaints per 100k VMT since 2025Q1. Whether the
-write-up leads with the NB slope or with "flat since 2025Q1" is a framing call.
+Current result: pooled baseline **0.31 PUDO complaints per 100k miles**
+(417 over 137M mi; exact 95% CI 0.28–0.34) ≈ 1.97 per 100k trips. Exposure-
+adjusted trend is **falling** — NB −12.7 %/quarter (95% CI −20 % to −5 %,
+p≈0.001), total ≈ −61 % over the window; **negative under all five
+denominators** (−8 % to −15 %/qtr) and Mann-Kendall τ negative under all
+(though MK p only 0.06–0.72 — the series is non-monotone). BUT dropping the
+2024Q3 launch-ramp quarter (rate 3.2× the rest) roughly halves the slope to
+−5 %/qtr, p≈0.05; since 2025Q1 the rate is flat ~0.24–0.31 / 100k VMT. Framing
+call for the write-up: "fell during scale-up, then plateaued."
 
 ## Known caveats for the write-up
 

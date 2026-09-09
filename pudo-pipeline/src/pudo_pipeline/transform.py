@@ -8,10 +8,13 @@ complaints    one row per ride (2025Q1+ microdata only), Y/N flags as booleans,
               absent here - use ``pudo_counts`` for their numerators.
 monthly       one row per (year, month) of Waymo driverless fleet activity
               (trips, VMT, PMT).
-pudo_counts   one row per analysis period: PUDO complaint / collision counts,
-              derived from whichever schema that period's files use.
+pudo_counts   one row per analysis period: PUDO complaint / collision counts
+              (+ ``all_complaints``), derived from whichever schema that
+              period's files use.
 summary       one row per analysis period: pudo_counts joined to exposure, with
-              complaints-per-100k-VMT rates.
+              a rate per 100k under every denominator. ``build.py`` also writes
+              ``final_pudo_summary`` = just ``period_label`` / ``trips`` /
+              ``pudo_complaints``.
 
 Notes
 -----
@@ -38,6 +41,7 @@ from pathlib import Path
 import polars as pl
 
 from .config import (
+    AGG_COMPLAINT_COLS,
     AGG_PUDO_COLLISIONS_COL,
     AGG_PUDO_COMPLAINTS_COL,
     ANALYSIS_PERIOD_META,
@@ -212,8 +216,8 @@ def _read_waymo(path: Path) -> pl.DataFrame:
     return _filter_waymo(_read_csv_str(path))
 
 
-def _microdata_pudo_counts(df: pl.DataFrame) -> tuple[int, int, int]:
-    """(pudo_complaints, pudo_collisions, ride_rows) from one microdata frame."""
+def _microdata_pudo_counts(df: pl.DataFrame) -> tuple[int, int, int, int]:
+    """(pudo_complaints, pudo_collisions, all_complaints, ride_rows) for one frame."""
     complaints = int(df.select((pl.col("ComplaintPUDO") == "Y").sum()).item())
     coll_cols = [c for c in COLLISION_PUDO_FLAGS if c in df.columns]
     if coll_cols:
@@ -224,7 +228,16 @@ def _microdata_pudo_counts(df: pl.DataFrame) -> tuple[int, int, int]:
         )
     else:
         collisions = 0
-    return complaints, collisions, df.height
+    cflags = [c for c in COMPLAINT_FLAGS if c in df.columns]
+    if cflags:
+        all_complaints = int(
+            df.select(
+                pl.sum_horizontal([(pl.col(c) == "Y").sum() for c in cflags]).alias("n")
+            ).item()
+        )
+    else:
+        all_complaints = 0
+    return complaints, collisions, all_complaints, df.height
 
 
 def load_pudo_counts(extract_dir: Path) -> pl.DataFrame:
@@ -232,7 +245,10 @@ def load_pudo_counts(extract_dir: Path) -> pl.DataFrame:
 
     Handles both file schemas: the 2024 wide aggregate (one summed row,
     ``ComplaintsPUDO``) and the 2025Q1+ ride-level microdata (Y/N
-    ``ComplaintPUDO`` flag). ``pudo_travel_lane`` is always null (redacted).
+    ``ComplaintPUDO`` flag). ``all_complaints`` is the total across every
+    complaint category (Safety / PUDO / Accessibility / WAV / CustomerService /
+    Other), for the "PUDO share of all complaints" view.
+    ``pudo_travel_lane`` is always null (redacted).
     """
     recs = []
     for raw_period in PERIODS:
@@ -242,7 +258,7 @@ def load_pudo_counts(extract_dir: Path) -> pl.DataFrame:
 
         schema = None
         agg_frames: list[pl.DataFrame] = []
-        m_complaints = m_collisions = m_rows = 0
+        m_complaints = m_collisions = m_all = m_rows = 0
 
         for f in _complaint_files(pdir):
             df = _read_waymo(f)
@@ -253,9 +269,10 @@ def load_pudo_counts(extract_dir: Path) -> pl.DataFrame:
                 agg_frames.append(df)
             elif "ComplaintPUDO" in df.columns:
                 schema = "microdata"
-                c, k, n = _microdata_pudo_counts(df)
+                c, k, a, n = _microdata_pudo_counts(df)
                 m_complaints += c
                 m_collisions += k
+                m_all += a
                 m_rows += n
             else:
                 warnings.warn(
@@ -282,10 +299,17 @@ def load_pudo_counts(extract_dir: Path) -> pl.DataFrame:
                 collisions = None if collisions is None else int(collisions)
             else:
                 collisions = None
+            acols = [c for c in AGG_COMPLAINT_COLS if c in agg.columns]
+            all_complaints = int(
+                agg.select(
+                    pl.sum_horizontal([_to_float(c) for c in acols])
+                ).sum().item() or 0
+            ) if acols else None
             ride_rows = None
         else:
             complaints = m_complaints
             collisions = m_collisions
+            all_complaints = m_all
             ride_rows = m_rows
 
         recs.append(
@@ -295,6 +319,7 @@ def load_pudo_counts(extract_dir: Path) -> pl.DataFrame:
                 "schema": schema,
                 "pudo_complaints": complaints,
                 "pudo_collisions": collisions,
+                "all_complaints": all_complaints,
                 "ride_rows": ride_rows,
             }
         )
@@ -308,6 +333,7 @@ def load_pudo_counts(extract_dir: Path) -> pl.DataFrame:
         .agg(
             pl.col("pudo_complaints").sum(),
             pl.col("pudo_collisions").sum(),
+            pl.col("all_complaints").sum().alias("all_complaints"),
             pl.col("ride_rows").sum().alias("ride_rows"),
             pl.col("schema").unique().sort().str.join("+").alias("schema"),
         )
@@ -320,7 +346,11 @@ def load_pudo_counts(extract_dir: Path) -> pl.DataFrame:
         )
         .sort("period_id")
     )
-    return counts
+    labels = pl.DataFrame(
+        [{"period_id": p, "period_label": m["period_label"]}
+         for p, m in ANALYSIS_PERIOD_META.items()]
+    )
+    return labels.join(counts, on="period_id", how="right").sort("period_id")
 
 
 # --------------------------------------------------------------------------- #
@@ -369,6 +399,14 @@ def load_complaints(extract_dir: Path) -> pl.DataFrame:
 # --------------------------------------------------------------------------- #
 # period summary
 # --------------------------------------------------------------------------- #
+# Exposure denominators carried on the summary. Each gets a matching
+# `pudo_per_100k_<name>` rate column. `vmt_total` = P1+P2+P3 (what the
+# assignment asks for); `trips` is the most literal "one PUDO opportunity per
+# trip" count; the phase splits let the trend be checked under a tighter PUDO
+# proxy (P1 ends in a pickup, P3 ends in a dropoff).
+EXPOSURE_COLS = ["vmt_total", "vmt_p1", "vmt_p2", "vmt_p3", "vmt_p1_p3", "trips"]
+
+
 def build_summary(pudo_counts: pl.DataFrame, monthly: pl.DataFrame) -> pl.DataFrame:
     # Exposure: sum monthly VMT / trips over the exact months each analysis
     # period covers.
@@ -384,38 +422,47 @@ def build_summary(pudo_counts: pl.DataFrame, monthly: pl.DataFrame) -> pl.DataFr
         month_map.join(monthly, on=["year", "month"], how="left")
         .group_by("period_id")
         .agg(
-            pl.col("vmt_total").sum().alias("vmt"),
+            pl.col("vmt_total").sum().alias("vmt_total"),
+            pl.col("TotalVMTPeriod1").sum().alias("vmt_p1"),
+            pl.col("TotalVMTPeriod2").sum().alias("vmt_p2"),
+            pl.col("TotalVMTPeriod3").sum().alias("vmt_p3"),
             pl.col("TotalTrips").sum().alias("trips"),
             pl.col("vmt_total").is_not_null().sum().alias("months_with_vmt"),
             pl.len().alias("n_months"),
         )
+        .with_columns((pl.col("vmt_p1") + pl.col("vmt_p3")).alias("vmt_p1_p3"))
     )
     # A period whose monthly rows are all missing sums to 0.0, not null - make
     # that explicit so rates come out null instead of infinite / zero.
     exposure = exposure.with_columns(
-        pl.when(pl.col("months_with_vmt") > 0)
-        .then(pl.col("vmt"))
-        .otherwise(None)
-        .alias("vmt"),
-        pl.when(pl.col("months_with_vmt") > 0)
-        .then(pl.col("trips"))
-        .otherwise(None)
-        .alias("trips"),
+        [
+            pl.when(pl.col(c) > 0).then(pl.col(c)).otherwise(None).alias(c)
+            for c in EXPOSURE_COLS
+        ]
     )
 
     meta = pl.DataFrame(list(ANALYSIS_PERIOD_META.values()))
+    # meta is the authority on labels; drop pudo_counts' copy to avoid a dup column
+    counts = pudo_counts.drop("period_label", strict=False)
     return (
-        meta.join(pudo_counts, on="period_id", how="left")
+        meta.join(counts, on="period_id", how="left")
         .join(exposure, on="period_id", how="left")
+        .with_columns(pl.col("vmt_total").alias("vmt"))  # back-compat alias
         .with_columns(
-            (pl.col("pudo_complaints") / pl.col("vmt") * 100_000).alias(
-                "pudo_per_100k_vmt"
-            ),
-            (pl.col("pudo_complaints") / pl.col("trips") * 100_000).alias(
-                "pudo_per_100k_trips"
-            ),
+            [
+                (pl.col("pudo_complaints") / pl.col(c) * 100_000).alias(
+                    f"pudo_per_100k_{'vmt' if c == 'vmt_total' else c}"
+                )
+                for c in EXPOSURE_COLS
+            ]
+        )
+        .with_columns(
             (pl.col("pudo_complaints") / pl.col("ride_rows") * 1_000_000).alias(
                 "pudo_per_million_rides"
+            ),
+            (pl.col("vmt_p1") / pl.col("vmt_total")).alias("deadhead_share"),
+            (pl.col("pudo_complaints") / pl.col("all_complaints")).alias(
+                "pudo_share_of_complaints"
             ),
         )
         .sort("period_id")

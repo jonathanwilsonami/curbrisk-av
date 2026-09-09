@@ -5,7 +5,7 @@ in Waymo's CPUC AV Deployment quarterly reports, covering **2024 Q3 – 2026 Q2*
 (8 quarters).
 
 Downloads the public report zips from the CPUC website, extracts the
-Incidents-Complaints and Month-Level files, and compiles them into four parquet
+Incidents-Complaints and Month-Level files, and compiles them into five parquet
 datasets ready for analysis.
 
 ## Quick start
@@ -21,7 +21,7 @@ conda create -n pudo python=3.11 -y && conda activate pudo && pip install -e .
 pudo-build
 
 # open the analysis notebook
-jupyter lab notebooks/pudo_analysis.ipynb
+notebooks/pudo_analysis.ipynb
 ```
 
 Already have the zips? Drop them in `data/raw/` named `<period_id>.zip`
@@ -39,16 +39,28 @@ recombines Sep–Nov + Dec into a single `2024Q4` (Sep–Dec 2024), giving **8
 analysis quarters** (`2024Q3`, `2024Q4`, `2025Q1` … `2026Q2`). Download and
 extraction still use the 9 raw ids; only the analysis frames use the 8.
 `2024Q3` (3 months) and `2024Q4` (4 months) have unequal exposure, absorbed by
-the `log(VMT)` offset in the trend model.
+the `log(exposure)` offset in the trend model.
+
+## Exposure
+
+The primary denominator is **trips** — one completed trip = one pick-up + one
+drop-off = one PUDO opportunity. VMT (total and by phase) is carried alongside
+as a robustness check and because it is the measure named in the assignment; the
+trend direction is identical under all of them.
 
 ## Outputs (`data/parquet/`)
+
+Every per-period row carries `period_id` (`YYYYQn`, clean to sort/filter/join),
+`period_label` (`"2024 Q3 (Jun–Aug)"` — 2024's names aren't calendar quarters),
+`window_start` / `window_end` dates, and `is_calendar_quarter`.
 
 | File | Grain | Contents |
 |---|---|---|
 | `complaints.parquet` | one row per ride (**2025Q1+ only** — the 2024 reports have no ride-level data) | Y/N complaint & PUDO-collision flags as booleans; `period_id`, `raw_period`, `year`, `quarter`, `company`, `source_file` |
 | `monthly_activity.parquet` | one row per month | Waymo driverless trips, VMT by phase (P1 deadhead / P2 en-route / P3 passenger), `vmt_total`, PMT, passengers |
-| `pudo_counts.parquet` | one row per analysis period | `pudo_complaints`, `pudo_collisions`, `ride_rows`, `pudo_travel_lane` (always null — redacted), `schema` (`aggregate` / `microdata`) |
-| `pudo_summary.parquet` | one row per analysis period | `pudo_counts` joined to VMT & trips, with rates per 100k VMT / 100k trips / million rides |
+| `pudo_counts.parquet` | one row per analysis period | `pudo_complaints`, `pudo_collisions`, `all_complaints` (every complaint category), `ride_rows`, `pudo_travel_lane` (always null — redacted), `schema` (`aggregate` / `microdata`) |
+| `pudo_summary.parquet` | one row per analysis period | `pudo_counts` joined to exposure. Five denominators — `trips` (primary), `vmt_total`, `vmt_p1` (deadhead→pickup), `vmt_p3` (passenger→dropoff), `vmt_p1_p3` — each with a `pudo_per_100k_*` rate, plus `deadhead_share`, `pudo_share_of_complaints`, `pudo_per_million_rides` |
+| `final_pudo_summary.parquet` | one row per analysis period | the minimal hand-off: `period_label`, `trips`, `pudo_complaints` |
 
 ## Data notes & caveats
 
