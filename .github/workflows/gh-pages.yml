@@ -2,7 +2,7 @@ name: Publish committed docs/ to gh-pages
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   workflow_dispatch:
 
 permissions:
@@ -11,15 +11,15 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: true
 
-      # Copy the already-committed docs/ folder to gh-pages
-      - name: Publish docs to gh-pages
+      - name: Publish project site to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
-          publish_dir: docs
+          publish_dir: ./project-site/docs
