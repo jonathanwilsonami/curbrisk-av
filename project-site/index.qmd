@@ -1,0 +1,9 @@
+---
+title: "Home"
+---
+
+# Welcome
+
+Welcome to the CurbRisk-AV Project website! 
+
+CurbRisk-AV — Quantifying autonomous vehicle pickup and drop-off risk using exposure-adjusted complaint data

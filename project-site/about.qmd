@@ -1,0 +1,23 @@
+---
+title: "About the Team & Project"
+page-navigation: false
+toc: false
+page-layout: full
+
+about:
+  id: hero-heading
+  template: trestles
+  image-width: 70%
+---
+
+:::{#hero-heading}
+
+## [Jonathan Wilson](https://jonathanwil.com) {.fw-bold .text-center .mb-2 .fs-2}
+
+![Jonathan Wilson](/images/about/jon.png){fig-alt="Jonathan Wilson" width="28%" fig-align="center"}
+
+::: {.small .lh-sm}
+Jonathan designs and builds intelligent systems at scale...
+:::
+
+And others...

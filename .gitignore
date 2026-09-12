@@ -1,6 +1,10 @@
 # Notes 
 notes/*
 
+# Quarto 
+/.quarto/
+**/*.quarto_ipynb
+
 # Data Files 
 data/
 
