@@ -27,6 +27,7 @@ ul.task-list li input[type="checkbox"] {
 div.csl-bib-body { }
 div.csl-entry {
   clear: both;
+  margin-bottom: 0em;
 }
 .hanging-indent div.csl-entry {
   margin-left:2em;
@@ -63,6 +64,9 @@ div.csl-indent {
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-d8a18cee56031974d1f8f6eead200d41.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -92,6 +96,35 @@ div.csl-indent {
 }</script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -229,9 +262,7 @@ div.csl-indent {
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-body-container">
-<p><strong>Course:</strong> ME 575<br>
-<strong>Instructor:</strong> Dr.&nbsp;Missy Cummings<br>
-<strong>Institution:</strong> George Mason University</p>
+<p><strong>Course:</strong> ME 575 <strong>Instructor:</strong> Dr.&nbsp;Missy Cummings <strong>Institution:</strong> George Mason University</p>
 </div>
 </div>
 </div>
@@ -252,58 +283,428 @@ div.csl-indent {
 <h2 data-number="1.1" class="anchored" data-anchor-id="problem-statement"><span class="header-section-number">1.1</span> Problem Statement</h2>
 <section id="the-problem" class="level3" data-number="1.1.1">
 <h3 data-number="1.1.1" class="anchored" data-anchor-id="the-problem"><span class="header-section-number">1.1.1</span> The Problem:</h3>
+<p>Autonomous-vehicle pick-up / drop-off (PUDO) maneuvers — the moments a driverless vehicle stops so a rider can get in or out — are a plausible source of curb-space conflict, minor collisions, and rider complaints. Whether that risk is growing, shrinking, or holding steady as a fleet scales is hard to answer from the public record: California Public Utilities Commission (CPUC) AV Deployment reports are large, redacted, and change format from quarter to quarter, so nobody has simply lined them up into a rate over time.</p>
 </section>
 <section id="contribution" class="level3" data-number="1.1.2">
 <h3 data-number="1.1.2" class="anchored" data-anchor-id="contribution"><span class="header-section-number">1.1.2</span> Contribution</h3>
+<ul>
+<li>A reproducible pipeline (<code>pudo-pipeline</code>) that ingests nine CPUC quarterly report zips for Waymo’s driverless deployment — two incompatible file schemas, redaction, and formatting drift included — into five analysis-ready tables.</li>
+<li>An exposure-adjusted PUDO complaint rate across eight quarters (2024 Q3 – 2026 Q2), on trips — the team’s chosen exposure measure, cross-checked against total vehicle miles traveled — with an explicit trend test (Poisson / Negative-Binomial GLM), a distribution-free cross-check (Mann-Kendall), and a Bayesian refit (PyMC/NUTS) that replaces the frequentist p-value with a direct posterior probability the rate is declining.</li>
+<li>A placement of the PUDO hazard on a probability × impact risk matrix that is computed from the data rather than asserted, with the probability basis left as a visible, toggleable assumption.</li>
+</ul>
 </section>
 <section id="scope-and-vision" class="level3" data-number="1.1.3">
 <h3 data-number="1.1.3" class="anchored" data-anchor-id="scope-and-vision"><span class="header-section-number">1.1.3</span> Scope and Vision</h3>
+<p><strong>Scope:</strong> one carrier (Waymo), one state (California), eight quarters, public CPUC filings only — no proprietary telemetry. <strong>Vision:</strong> the pipeline’s loaders are written against the CPUC’s public template, not against Waymo specifically, so the same numerator/denominator/trend method can be pointed at any other CPUC-reporting AV carrier to support carrier-to-carrier comparison rather than a single-carrier trend.</p>
 </section>
 </section>
 <section id="technical-challenges" class="level2" data-number="1.2">
 <h2 data-number="1.2" class="anchored" data-anchor-id="technical-challenges"><span class="header-section-number">1.2</span> Technical Challenges</h2>
+<ul>
+<li><strong>Two incompatible numerator schemas.</strong> 2024 reports ship one aggregate, pre-summed row per quarter; 2025Q1 onward ship ride-level microdata (millions of rows) with a Y/N complaint flag. Both had to be reconciled into one numerator, and the level shift between eras cannot be fully ruled out.</li>
+<li><strong>Redaction.</strong> Incident timestamps, locations, and the <code>PUDOTravelLane</code> flag are blank in every file of every period, ruling out within-quarter timing or spatial analysis.</li>
+<li><strong>Silent formatting drift.</strong> Comma-grouped numerics, filenames that change across quarters, and a transposed carrier ID silently nulled the exposure data until caught — the loader now warns loudly instead of nulling quietly.</li>
+<li><strong>Non-calendar reporting periods.</strong> The 2024 CPUC reports are not calendar quarters, so “2024 Q3” / “2024 Q4” needed explicit relabeling (<code>period_label</code>, <code>is_calendar_quarter</code>) to avoid silently comparing the wrong months.</li>
+<li><strong>Small, overdispersed counts.</strong> 27–79 complaints per quarter is enough to rule out the normal-approximation trend test, but not enough to ignore quarter-to-quarter noise.</li>
+</ul>
 </section>
 </section>
 <section id="related-work" class="level1" data-number="2">
 <h1 data-number="2"><span class="header-section-number">2</span> Related Work</h1>
+<!-- TODO: we have not identified a published PUDO-specific baseline for
+driverless fleets to compare against; CPUC's own quarterly filings are the
+primary source used here. -->
 </section>
 <section id="data" class="level1" data-number="3">
 <h1 data-number="3"><span class="header-section-number">3</span> Data</h1>
 <section id="data-sources" class="level2" data-number="3.1">
 <h2 data-number="3.1" class="anchored" data-anchor-id="data-sources"><span class="header-section-number">3.1</span> Data Sources</h2>
+<p>Public data comes from the CPUC AV Program’s quarterly deployment reports (cpuc.ca.gov → Licensing → Autonomous Vehicle Programs → Quarterly Reporting) <span class="citation" data-cites="cpuc_av_quarterly_reporting"><a href="#ref-cpuc_av_quarterly_reporting" role="doc-biblioref">[1]</a></span>. Two file families, both filed per reporting period:</p>
+<ul>
+<li><strong>Incidents-Complaints</strong> — the numerator. PUDO complaint and PUDO-collision counts.</li>
+<li><strong>Month-Level</strong> — the denominator. Real <code>Year</code>/<code>Month</code>, trips, and vehicle miles traveled (VMT). VMT is further split into three “period” columns in the source file, but CPUC’s own reference key never defines what those periods mean, so this analysis uses trips as the primary exposure measure and VMT only as an unsplit, whole-quarter cross-check.</li>
+</ul>
+<p>Nine raw reporting windows (Jun–Aug 2024, Sep–Nov 2024, a Dec 2024 one-month stub, then eight calendar quarters through 2026 Q2) are recombined into eight analysis quarters, <code>2024Q3</code>–<code>2026Q2</code>.</p>
+<p>All numbers, tables, and figures in this paper are pulled directly from the project’s analysis notebook — see <a href="https://github.com/jonathanwilsonami/curbrisk-av/blob/main/pudo-pipeline/notebooks/pudo_analysis.ipynb"><code>pudo_analysis.ipynb</code></a> for the full code and every intermediate result.</p>
 </section>
 </section>
 <section id="methods" class="level1" data-number="4">
 <h1 data-number="4"><span class="header-section-number">4</span> Methods</h1>
 <section id="feature-engineering" class="level2" data-number="4.1">
 <h2 data-number="4.1" class="anchored" data-anchor-id="feature-engineering"><span class="header-section-number">4.1</span> Feature Engineering</h2>
+<p>Every analysis period carries a clean sort/filter key (<code>period_id</code>) alongside a human-readable label, its exact date window, and a flag for whether that window is actually a calendar quarter (<code>period_label</code>, <code>window_start</code>/<code>window_end</code>, <code>is_calendar_quarter</code> — false only for the two 2024 periods). Two exposure denominators are computed per period — trips (one pick-up + one drop-off per trip, the most literal PUDO-opportunity count; the primary measure) and total VMT (a cross-check) — each paired with a <code>pudo_per_100k_*</code> rate, plus a PUDO-share-of-all-complaints column for context.</p>
 </section>
 <section id="modeling" class="level2" data-number="4.2">
 <h2 data-number="4.2" class="anchored" data-anchor-id="modeling"><span class="header-section-number">4.2</span> Modeling</h2>
+<p>The complaint rate is modeled as a Poisson process: <code>complaints ~ t</code> with <code>offset = log(exposure)</code>, fit once per exposure denominator. An index-of- dispersion test on the raw counts (variance-to-mean ratio, tested against <span class="math inline">\(\chi^2_{n-1}\)</span>) checks the Poisson equidispersion assumption; when it fails — which it does here — the model switches to Negative Binomial (Poisson with a Gamma-distributed rate) instead. Mann-Kendall’s <span class="math inline">\(\tau\)</span> provides a distribution-free cross-check on the trend direction that does not assume any particular count distribution. Per-quarter rate uncertainty is reported with the <strong>exact</strong> Poisson confidence interval (<span class="math inline">\(\chi^2\)</span> method) rather than the normal/Wald approximation, since it stays valid at small and zero counts.</p>
+<p>With only eight quarters, the frequentist Negative-Binomial fit’s confidence interval is built by estimating the dispersion parameter by maximum likelihood and then treating it as known — a step that understates uncertainty in a small sample. As a check, the same model is refit as a full Bayesian posterior (PyMC, NUTS sampler): weakly informative priors on the intercept and slope (<code>Normal(log(pooled rate), 2)</code> and <code>Normal(0, 1)</code>, the latter expressing no prior belief about direction) and an <code>Exponential(1)</code> prior on the dispersion. 4 chains × 2000 draws, checked for convergence (<span class="math inline">\(\hat{R}\)</span>, divergences) and for sensitivity to the prior width on the slope. This gives a full posterior on the per-quarter rate change and a direct <strong>P(the rate is declining)</strong>, rather than a p-value.</p>
 </section>
 </section>
 <section id="evaluation-and-results" class="level1" data-number="5">
 <h1 data-number="5"><span class="header-section-number">5</span> Evaluation and Results</h1>
+<p>Per-quarter descriptive statistics for the complaint counts, exposure, and rate (<a href="#tbl-summary-stats" class="quarto-xref">Table&nbsp;1</a>) show why raw counts cannot be compared directly: exposure grows nearly 6× across the window.</p>
+<div id="tbl-summary-stats" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-summary-stats-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Per-quarter descriptive statistics for PUDO complaints, trips, and the PUDO-per-100k-trips rate, 2024 Q3 - 2026 Q2 (n = 8).
+</figcaption>
+<div aria-describedby="tbl-summary-stats-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 30%">
+<col style="width: 11%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 11%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 9%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>variable</th>
+<th>mean</th>
+<th>std</th>
+<th>min</th>
+<th>median</th>
+<th>max</th>
+<th>range</th>
+<th>CV</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>PUDO complaints</td>
+<td>52.125</td>
+<td>17.57</td>
+<td>27.0</td>
+<td>46.5</td>
+<td>79.0</td>
+<td>52.0</td>
+<td>0.337</td>
+</tr>
+<tr class="even">
+<td>trips (M)</td>
+<td>2.651</td>
+<td>1.216</td>
+<td>0.752</td>
+<td>2.455</td>
+<td>4.22</td>
+<td>3.468</td>
+<td>0.459</td>
+</tr>
+<tr class="odd">
+<td>rate /100k trips</td>
+<td>2.317</td>
+<td>1.324</td>
+<td>1.485</td>
+<td>1.819</td>
+<td>5.453</td>
+<td>3.968</td>
+<td>0.572</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Pooling across all eight quarters gives the headline exposure-adjusted rate (<a href="#tbl-baseline" class="quarto-xref">Table&nbsp;2</a>): Over the study window Waymo averaged <strong>1.97</strong> PUDO complaints per 100,000 trips (exact Poisson 95% CI 1.78-2.16), from 417 complaints over 21.2M trips.</p>
+<div id="tbl-baseline" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-baseline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: Pooled PUDO complaint rate over the study window (417 complaints, 2024 Q3 - 2026 Q2).
+</figcaption>
+<div aria-describedby="tbl-baseline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>complaints</th>
+<th>trips (M)</th>
+<th>rate per 100k trips</th>
+<th>95% CI</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>417</td>
+<td>21.2</td>
+<td>1.966</td>
+<td>[1.782, 2.164]</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Fitting a trend under both exposure denominators — trips (primary) and VMT total (cross-check) — gives the same direction (<a href="#tbl-trend" class="quarto-xref">Table&nbsp;3</a>): The exposure-adjusted trend is negative under all 2 exposure denominators tested (per-quarter change -13% to -11%; GLM p 0.001-0.007), and Mann-Kendall’s tau is negative under all of them as well, though only marginally significant (p 0.40-0.55) given the non-monotone, fell-then-flat shape of the series.</p>
+<p>In more detail: Under the primary trips denominator, the fitted Neg. binomial slope is -10.7% per quarter (95% CI -17.8% to -3.1%, p = 0.007; total change -55% across the window).</p>
+<div id="tbl-trend" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-trend-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;3: Poisson / Negative-Binomial trend fit and Mann-Kendall check under every exposure denominator.
+</figcaption>
+<div aria-describedby="tbl-trend-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 20%">
+<col style="width: 9%">
+<col style="width: 16%">
+<col style="width: 10%">
+<col style="width: 7%">
+<col style="width: 9%">
+<col style="width: 9%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>denominator</th>
+<th>model</th>
+<th>%/qtr</th>
+<th>95% CI</th>
+<th>p (GLM)</th>
+<th>total</th>
+<th>MK tau</th>
+<th>p (MK)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Trips</td>
+<td>Neg. binomial</td>
+<td>-10.7%</td>
+<td>[-18%, -3%]</td>
+<td>0.007</td>
+<td>-55%</td>
+<td>-0.21</td>
+<td>0.548</td>
+</tr>
+<tr class="even">
+<td>VMT total</td>
+<td>Neg. binomial</td>
+<td>-12.7%</td>
+<td>[-20%, -5%]</td>
+<td>0.001</td>
+<td>-61%</td>
+<td>-0.29</td>
+<td>0.399</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>That decline is almost entirely the 2024 launch ramp — dropping that quarter cuts the slope by roughly two-thirds and the effect is no longer statistically significant (see Limitations). From 2025 Q1 onward the rate is essentially flat.</p>
+<p>The Bayesian refit (<a href="#tbl-bayes-nb" class="quarto-xref">Table&nbsp;4</a>) tells a consistent but more cautious story: A Bayesian Negative-Binomial fit (weakly informative priors, PyMC/NUTS, 4 chains x 2000 draws, 0 divergences, max R-hat 1.00) gives a posterior median slope of <strong>-10.9%</strong> per quarter (95% credible interval [-25.2%, +7.6%]) and <strong>P(the rate is declining) = 90%</strong> – consistent with, but appropriately less certain than, the frequentist p = 0.007.</p>
+<div id="tbl-bayes-nb" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-bayes-nb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;4: Bayesian Negative-Binomial trend model posterior summary (PyMC/NUTS, 4 chains x 2000 draws, 0 divergences).
+</figcaption>
+<div aria-describedby="tbl-bayes-nb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 17%">
+<col style="width: 13%">
+<col style="width: 9%">
+<col style="width: 15%">
+<col style="width: 17%">
+<col style="width: 9%">
+<col style="width: 15%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>parameter</th>
+<th>mean</th>
+<th>sd</th>
+<th>hdi_2.5%</th>
+<th>hdi_97.5%</th>
+<th>r_hat</th>
+<th>ess_bulk</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>b0</td>
+<td>-10.282</td>
+<td>0.394</td>
+<td>-11.059</td>
+<td>-9.529</td>
+<td>1.0</td>
+<td>2731.0</td>
+</tr>
+<tr class="even">
+<td>b1</td>
+<td>-0.115</td>
+<td>0.091</td>
+<td>-0.299</td>
+<td>0.058</td>
+<td>1.0</td>
+<td>2741.0</td>
+</tr>
+<tr class="odd">
+<td>alpha</td>
+<td>3.131</td>
+<td>1.502</td>
+<td>0.649</td>
+<td>6.036</td>
+<td>1.0</td>
+<td>2921.0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div id="fig-bayes-trend" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-bayes-trend-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="assets/fig-bayes-trend.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Bayesian Negative-Binomial posterior on the per-quarter rate change, vs.&nbsp;the frequentist point estimate and 95% CI."><img src="assets/fig-bayes-trend.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bayes-trend-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Bayesian Negative-Binomial posterior on the per-quarter rate change, vs.&nbsp;the frequentist point estimate and 95% CI.
+</figcaption>
+</figure>
+</div>
+<p>The posterior barely shifts across a 4× range of prior width on the slope (<a href="#tbl-bayes-prior-sensitivity" class="quarto-xref">Table&nbsp;5</a>) — the conclusion is driven by the data, not the choice of prior:</p>
+<div id="tbl-bayes-prior-sensitivity" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-bayes-prior-sensitivity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;5: Bayesian NB posterior sensitivity to the prior width on the trend slope.
+</figcaption>
+<div aria-describedby="tbl-bayes-prior-sensitivity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>prior sd on slope</th>
+<th>posterior median %/qtr</th>
+<th>P(declining)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0.5</td>
+<td>-11.0%</td>
+<td>90.0%</td>
+</tr>
+<tr class="even">
+<td>1.0</td>
+<td>-10.8%</td>
+<td>90.6%</td>
+</tr>
+<tr class="odd">
+<td>2.0</td>
+<td>-11.1%</td>
+<td>90.6%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>To place the hazard on a risk matrix, the consequence of a PUDO event is read off a risk curve — how the event rate falls as severity rises (<a href="#fig-risk-curve" class="quarto-xref">Figure&nbsp;2</a>). Nothing severe or fatal was observed at the PUDO level over the window.</p>
+<div id="fig-risk-curve" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-risk-curve-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="assets/fig-risk-curve.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: PUDO risk curve: event rate per 100,000 trips at each step up in consequence severity (log scale). The unfilled bar is a rule-of-three upper bound on a rate with zero observed events, not a measurement."><img src="assets/fig-risk-curve.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-risk-curve-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: PUDO risk curve: event rate per 100,000 trips at each step up in consequence severity (log scale). The unfilled bar is a rule-of-three upper bound on a rate with zero observed events, not a measurement.
+</figcaption>
+</figure>
+</div>
+<p>Combining that impact reading with a probability of a PUDO complaint occurring in a given reporting quarter (<a href="#tbl-risk-basis" class="quarto-xref">Table&nbsp;6</a> compares three ways of framing that probability) places the hazard on the matrix as follows: Probability: <strong>Almost certain</strong> (P(&gt;=1 PUDO complaint in a quarter) = 1.0000). Impact: <strong>Minor</strong> (the worst consequence tier clearing 0.1/100k trips in the risk curve above). Combined risk level: <strong>Medium</strong>.</p>
+<div id="tbl-risk-basis" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-risk-basis-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;6: PUDO risk-matrix placement under three probability bases (impact held fixed).
+</figcaption>
+<div aria-describedby="tbl-risk-basis-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>prob basis</th>
+<th>probability</th>
+<th>impact</th>
+<th>risk level</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>per_period</td>
+<td>Almost certain</td>
+<td>Minor</td>
+<td>Medium</td>
+</tr>
+<tr class="even">
+<td>per_trip</td>
+<td>Moderate</td>
+<td>Minor</td>
+<td>Low</td>
+</tr>
+<tr class="odd">
+<td>bayesian</td>
+<td>Almost certain</td>
+<td>Minor</td>
+<td>Medium</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div id="fig-risk-matrix" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-risk-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="assets/fig-risk-matrix.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: PUDO complaint hazard on a probability × impact risk matrix, placed from the data under the per_period probability basis."><img src="assets/fig-risk-matrix.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-risk-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: PUDO complaint hazard on a probability × impact risk matrix, placed from the data under the <code>per_period</code> probability basis.
+</figcaption>
+</figure>
+</div>
 </section>
 <section id="discussion" class="level1" data-number="6">
 <h1 data-number="6"><span class="header-section-number">6</span> Discussion</h1>
 <section id="key-concepts-and-definitions" class="level2" data-number="6.1">
 <h2 data-number="6.1" class="anchored" data-anchor-id="key-concepts-and-definitions"><span class="header-section-number">6.1</span> Key Concepts and Definitions</h2>
+<ul>
+<li><strong>PUDO</strong> — pick-up / drop-off: the maneuver where a vehicle stops to let a rider board or alight.</li>
+<li><strong>Exposure denominator</strong> — the activity measure a complaint count is divided by (trips or VMT) so rates are comparable across quarters of very different fleet size.</li>
+<li><strong>Overdispersion</strong> — when a count’s variance exceeds its mean beyond what a Poisson process allows, indicating real between-period rate variation.</li>
+<li><strong>Risk matrix axes</strong> — <em>Probability</em>: how likely the hazard is to occur in a given period; <em>Impact</em>: how severe the outcome is when it does.</li>
+<li><strong>Credible interval vs.&nbsp;confidence interval</strong> — the Bayesian model’s 95% credible interval is a direct probability statement (“there is a 95% chance the true slope is in this range, given the data and the prior”); the frequentist confidence interval is not, which is why the two are reported side by side rather than treated as interchangeable.</li>
+</ul>
 </section>
 <section id="assumptions" class="level2" data-number="6.2">
 <h2 data-number="6.2" class="anchored" data-anchor-id="assumptions"><span class="header-section-number">6.2</span> Assumptions</h2>
+<ul>
+<li>PUDO complaints are treated as a Poisson-type count process for modeling purposes; the overdispersion test shows this needs the Negative-Binomial correction rather than being false outright.</li>
+<li>The Bayesian trend model’s priors are weakly informative and were checked for sensitivity (<a href="#tbl-bayes-prior-sensitivity" class="quarto-xref">Table&nbsp;5</a>) — the posterior does not depend meaningfully on the specific prior width chosen.</li>
+<li>The risk matrix’s “Almost certain” probability reading assumes the relevant question is <em>will at least one PUDO complaint occur somewhere in the fleet this quarter</em> (it will), not the odds for any single trip.</li>
+<li>Complaint counts are assumed complete and consistently defined within each reporting era; the 2024 aggregate table and the 2025+ ride-level microdata are assumed to measure the same underlying thing.</li>
+</ul>
 </section>
 <section id="limitations" class="level2" data-number="6.3">
 <h2 data-number="6.3" class="anchored" data-anchor-id="limitations"><span class="header-section-number">6.3</span> Limitations</h2>
+<ul>
+<li>Complaints are self-reported by the carrier to its regulator; the rate measures <em>reported</em> problems, not necessarily underlying PUDO behavior, and reporting propensity could itself change over time.</li>
+<li>Waymo expanded to new cities during the window; a rate change may partly reflect new-market composition rather than a change in PUDO behavior.</li>
+<li>The 2024 and 2025+ numerators come from different source-file schemas, so a level shift at that boundary cannot be fully distinguished from a real trend.</li>
+<li>Redaction removes all within-quarter timing and location detail, and the travel-lane PUDO signal is unavailable in every file.</li>
+<li>Single carrier, single state, eight quarters — not yet a cross-carrier or multi-state comparison.</li>
+</ul>
 </section>
 </section>
 <section id="conclusion-and-future-work" class="level1" data-number="7">
 <h1 data-number="7"><span class="header-section-number">7</span> Conclusion and Future Work</h1>
+<p>Over 2024 Q3 – 2026 Q2, Waymo’s exposure-adjusted PUDO complaint rate fell sharply during the 2024 launch ramp and has been roughly flat since — not the rising trend a naive raw-count reading would suggest. On a probability × impact risk matrix the hazard currently sits in the <strong>Medium</strong>, monitor-and-mitigate band: frequent enough to expect every quarter, but low-consequence, with no severe or fatal PUDO events observed. These results are still provisional (see Limitations); as more CPUC quarters are published the same pipeline can extend the trend directly, and applying it to other CPUC-reporting AV carriers would turn a single-carrier trend into a cross-carrier comparison.</p>
 </section>
 <section id="references" class="level1 unnumbered">
 <h1 class="unnumbered">References</h1>
-<div id="refs" role="list">
-
+<div id="refs" class="references csl-bib-body" data-entry-spacing="0" role="list">
+<div id="ref-cpuc_av_quarterly_reporting" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline">California Public Utilities Commission, <span>“AV program quarterly reporting.”</span> 2026. Available: <a href="https://www.cpuc.ca.gov/regulatory-services/licensing/transportation-licensing-and-analysis-branch/autonomous-vehicle-programs/quarterly-reporting">https://www.cpuc.ca.gov/regulatory-services/licensing/transportation-licensing-and-analysis-branch/autonomous-vehicle-programs/quarterly-reporting</a></div>
+</div>
 </div>
 
 
@@ -711,6 +1112,38 @@ div.csl-indent {
   });
   </script>
 </div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 

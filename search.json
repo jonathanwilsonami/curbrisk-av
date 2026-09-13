@@ -11,70 +11,56 @@
     "href": "paper.html#problem-statement",
     "title": "CurbRisk-AV — Quantifying autonomous vehicle pickup and drop-off risk using exposure-adjusted complaint data",
     "section": "1.1 Problem Statement",
-    "text": "1.1 Problem Statement\n\n1.1.1 The Problem:\n\n\n1.1.2 Contribution\n\n\n1.1.3 Scope and Vision"
+    "text": "1.1 Problem Statement\n\n1.1.1 The Problem:\nAutonomous-vehicle pick-up / drop-off (PUDO) maneuvers — the moments a driverless vehicle stops so a rider can get in or out — are a plausible source of curb-space conflict, minor collisions, and rider complaints. Whether that risk is growing, shrinking, or holding steady as a fleet scales is hard to answer from the public record: California Public Utilities Commission (CPUC) AV Deployment reports are large, redacted, and change format from quarter to quarter, so nobody has simply lined them up into a rate over time.\n\n\n1.1.2 Contribution\n\nA reproducible pipeline (pudo-pipeline) that ingests nine CPUC quarterly report zips for Waymo’s driverless deployment — two incompatible file schemas, redaction, and formatting drift included — into five analysis-ready tables.\nAn exposure-adjusted PUDO complaint rate across eight quarters (2024 Q3 – 2026 Q2), on trips — the team’s chosen exposure measure, cross-checked against total vehicle miles traveled — with an explicit trend test (Poisson / Negative-Binomial GLM), a distribution-free cross-check (Mann-Kendall), and a Bayesian refit (PyMC/NUTS) that replaces the frequentist p-value with a direct posterior probability the rate is declining.\nA placement of the PUDO hazard on a probability × impact risk matrix that is computed from the data rather than asserted, with the probability basis left as a visible, toggleable assumption.\n\n\n\n1.1.3 Scope and Vision\nScope: one carrier (Waymo), one state (California), eight quarters, public CPUC filings only — no proprietary telemetry. Vision: the pipeline’s loaders are written against the CPUC’s public template, not against Waymo specifically, so the same numerator/denominator/trend method can be pointed at any other CPUC-reporting AV carrier to support carrier-to-carrier comparison rather than a single-carrier trend."
   },
   {
     "objectID": "paper.html#technical-challenges",
     "href": "paper.html#technical-challenges",
     "title": "CurbRisk-AV — Quantifying autonomous vehicle pickup and drop-off risk using exposure-adjusted complaint data",
     "section": "1.2 Technical Challenges",
-    "text": "1.2 Technical Challenges"
+    "text": "1.2 Technical Challenges\n\nTwo incompatible numerator schemas. 2024 reports ship one aggregate, pre-summed row per quarter; 2025Q1 onward ship ride-level microdata (millions of rows) with a Y/N complaint flag. Both had to be reconciled into one numerator, and the level shift between eras cannot be fully ruled out.\nRedaction. Incident timestamps, locations, and the PUDOTravelLane flag are blank in every file of every period, ruling out within-quarter timing or spatial analysis.\nSilent formatting drift. Comma-grouped numerics, filenames that change across quarters, and a transposed carrier ID silently nulled the exposure data until caught — the loader now warns loudly instead of nulling quietly.\nNon-calendar reporting periods. The 2024 CPUC reports are not calendar quarters, so “2024 Q3” / “2024 Q4” needed explicit relabeling (period_label, is_calendar_quarter) to avoid silently comparing the wrong months.\nSmall, overdispersed counts. 27–79 complaints per quarter is enough to rule out the normal-approximation trend test, but not enough to ignore quarter-to-quarter noise."
   },
   {
     "objectID": "paper.html#data-sources",
     "href": "paper.html#data-sources",
     "title": "CurbRisk-AV — Quantifying autonomous vehicle pickup and drop-off risk using exposure-adjusted complaint data",
     "section": "3.1 Data Sources",
-    "text": "3.1 Data Sources"
+    "text": "3.1 Data Sources\nPublic data comes from the CPUC AV Program’s quarterly deployment reports (cpuc.ca.gov → Licensing → Autonomous Vehicle Programs → Quarterly Reporting) [1]. Two file families, both filed per reporting period:\n\nIncidents-Complaints — the numerator. PUDO complaint and PUDO-collision counts.\nMonth-Level — the denominator. Real Year/Month, trips, and vehicle miles traveled (VMT). VMT is further split into three “period” columns in the source file, but CPUC’s own reference key never defines what those periods mean, so this analysis uses trips as the primary exposure measure and VMT only as an unsplit, whole-quarter cross-check.\n\nNine raw reporting windows (Jun–Aug 2024, Sep–Nov 2024, a Dec 2024 one-month stub, then eight calendar quarters through 2026 Q2) are recombined into eight analysis quarters, 2024Q3–2026Q2.\nAll numbers, tables, and figures in this paper are pulled directly from the project’s analysis notebook — see pudo_analysis.ipynb for the full code and every intermediate result."
   },
   {
     "objectID": "paper.html#feature-engineering",
     "href": "paper.html#feature-engineering",
     "title": "CurbRisk-AV — Quantifying autonomous vehicle pickup and drop-off risk using exposure-adjusted complaint data",
     "section": "4.1 Feature Engineering",
-    "text": "4.1 Feature Engineering"
+    "text": "4.1 Feature Engineering\nEvery analysis period carries a clean sort/filter key (period_id) alongside a human-readable label, its exact date window, and a flag for whether that window is actually a calendar quarter (period_label, window_start/window_end, is_calendar_quarter — false only for the two 2024 periods). Two exposure denominators are computed per period — trips (one pick-up + one drop-off per trip, the most literal PUDO-opportunity count; the primary measure) and total VMT (a cross-check) — each paired with a pudo_per_100k_* rate, plus a PUDO-share-of-all-complaints column for context."
   },
   {
     "objectID": "paper.html#modeling",
     "href": "paper.html#modeling",
     "title": "CurbRisk-AV — Quantifying autonomous vehicle pickup and drop-off risk using exposure-adjusted complaint data",
     "section": "4.2 Modeling",
-    "text": "4.2 Modeling"
+    "text": "4.2 Modeling\nThe complaint rate is modeled as a Poisson process: complaints ~ t with offset = log(exposure), fit once per exposure denominator. An index-of- dispersion test on the raw counts (variance-to-mean ratio, tested against \\(\\chi^2_{n-1}\\)) checks the Poisson equidispersion assumption; when it fails — which it does here — the model switches to Negative Binomial (Poisson with a Gamma-distributed rate) instead. Mann-Kendall’s \\(\\tau\\) provides a distribution-free cross-check on the trend direction that does not assume any particular count distribution. Per-quarter rate uncertainty is reported with the exact Poisson confidence interval (\\(\\chi^2\\) method) rather than the normal/Wald approximation, since it stays valid at small and zero counts.\nWith only eight quarters, the frequentist Negative-Binomial fit’s confidence interval is built by estimating the dispersion parameter by maximum likelihood and then treating it as known — a step that understates uncertainty in a small sample. As a check, the same model is refit as a full Bayesian posterior (PyMC, NUTS sampler): weakly informative priors on the intercept and slope (Normal(log(pooled rate), 2) and Normal(0, 1), the latter expressing no prior belief about direction) and an Exponential(1) prior on the dispersion. 4 chains × 2000 draws, checked for convergence (\\(\\hat{R}\\), divergences) and for sensitivity to the prior width on the slope. This gives a full posterior on the per-quarter rate change and a direct P(the rate is declining), rather than a p-value."
   },
   {
     "objectID": "paper.html#key-concepts-and-definitions",
     "href": "paper.html#key-concepts-and-definitions",
     "title": "CurbRisk-AV — Quantifying autonomous vehicle pickup and drop-off risk using exposure-adjusted complaint data",
     "section": "6.1 Key Concepts and Definitions",
-    "text": "6.1 Key Concepts and Definitions"
+    "text": "6.1 Key Concepts and Definitions\n\nPUDO — pick-up / drop-off: the maneuver where a vehicle stops to let a rider board or alight.\nExposure denominator — the activity measure a complaint count is divided by (trips or VMT) so rates are comparable across quarters of very different fleet size.\nOverdispersion — when a count’s variance exceeds its mean beyond what a Poisson process allows, indicating real between-period rate variation.\nRisk matrix axes — Probability: how likely the hazard is to occur in a given period; Impact: how severe the outcome is when it does.\nCredible interval vs. confidence interval — the Bayesian model’s 95% credible interval is a direct probability statement (“there is a 95% chance the true slope is in this range, given the data and the prior”); the frequentist confidence interval is not, which is why the two are reported side by side rather than treated as interchangeable."
   },
   {
     "objectID": "paper.html#assumptions",
     "href": "paper.html#assumptions",
     "title": "CurbRisk-AV — Quantifying autonomous vehicle pickup and drop-off risk using exposure-adjusted complaint data",
     "section": "6.2 Assumptions",
-    "text": "6.2 Assumptions"
+    "text": "6.2 Assumptions\n\nPUDO complaints are treated as a Poisson-type count process for modeling purposes; the overdispersion test shows this needs the Negative-Binomial correction rather than being false outright.\nThe Bayesian trend model’s priors are weakly informative and were checked for sensitivity (Table 5) — the posterior does not depend meaningfully on the specific prior width chosen.\nThe risk matrix’s “Almost certain” probability reading assumes the relevant question is will at least one PUDO complaint occur somewhere in the fleet this quarter (it will), not the odds for any single trip.\nComplaint counts are assumed complete and consistently defined within each reporting era; the 2024 aggregate table and the 2025+ ride-level microdata are assumed to measure the same underlying thing."
   },
   {
     "objectID": "paper.html#limitations",
     "href": "paper.html#limitations",
     "title": "CurbRisk-AV — Quantifying autonomous vehicle pickup and drop-off risk using exposure-adjusted complaint data",
     "section": "6.3 Limitations",
-    "text": "6.3 Limitations"
-  },
-  {
-    "objectID": "about.html",
-    "href": "about.html",
-    "title": "About the Team & Project",
-    "section": "",
-    "text": "Jonathan Wilson\n\n\n\nJonathan designs and builds intelligent systems at scale…\n\nAnd others…"
-  },
-  {
-    "objectID": "about.html#jonathan-wilson",
-    "href": "about.html#jonathan-wilson",
-    "title": "About the Team & Project",
-    "section": "",
-    "text": "Jonathan Wilson\n\n\n\nJonathan designs and builds intelligent systems at scale…\n\nAnd others…"
+    "text": "6.3 Limitations\n\nComplaints are self-reported by the carrier to its regulator; the rate measures reported problems, not necessarily underlying PUDO behavior, and reporting propensity could itself change over time.\nWaymo expanded to new cities during the window; a rate change may partly reflect new-market composition rather than a change in PUDO behavior.\nThe 2024 and 2025+ numerators come from different source-file schemas, so a level shift at that boundary cannot be fully distinguished from a real trend.\nRedaction removes all within-quarter timing and location detail, and the travel-lane PUDO signal is unavailable in every file.\nSingle carrier, single state, eight quarters — not yet a cross-carrier or multi-state comparison."
   },
   {
     "objectID": "index.html",
