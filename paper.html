@@ -592,19 +592,32 @@ Table&nbsp;3: Pooled PUDO complaint rate over the study window (417 complaints, 
 </div>
 </figure>
 </div>
+<p>PUDO complaints are also worth reading in context of everything else riders report. <a href="#fig-pudo-share" class="quarto-xref">Figure&nbsp;1</a> stacks the PUDO count against every other reported complaint category, per quarter:</p>
+<div id="fig-pudo-share" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pudo-share-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="assets/fig-pudo-share.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: PUDO complaints against all other reported complaint categories, per quarter."><img src="assets/fig-pudo-share.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pudo-share-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: PUDO complaints against all other reported complaint categories, per quarter.
+</figcaption>
+</figure>
+</div>
+<p>PUDO complaints average <strong>13%</strong> of all reported complaint categories over the window (range 10%-17%), making PUDO the largest location/behaviour complaint category (Safety and ‘Other’ are larger overall categories, but are not location-specific).</p>
+<p>PUDO complaints scale with total complaint volume — the PUDO share stays in a fairly narrow band rather than drifting — so PUDO is not a shrinking or growing slice of the overall complaint mix; it is consistently the largest category tied to a specific vehicle maneuver rather than a general safety or “other” catch-all.</p>
 <p>Fitting the Negative-Binomial GLM of <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> under both exposure denominators — trips (primary) and VMT total (cross-check) — and reading the slope off <a href="#eq-pct-change" class="quarto-xref">Equation&nbsp;2</a> gives the same direction (<a href="#tbl-trend" class="quarto-xref">Table&nbsp;4</a>), with Kendall’s <span class="math inline">\(\tau\)</span> (<a href="#eq-kendall" class="quarto-xref">Equation&nbsp;6</a>) agreeing: The exposure-adjusted trend is negative under all 2 exposure denominators tested (per-quarter change -13% to -11%; GLM p 0.001-0.007), and Mann-Kendall’s tau is negative under all of them as well, though only marginally significant (p 0.40-0.55) given the non-monotone, fell-then-flat shape of the series.</p>
 <p>In more detail: Under the primary trips denominator, the fitted Neg. binomial slope is -10.7% per quarter (95% CI -17.8% to -3.1%, p = 0.007; total change -55% across the window).</p>
 <div id="fig-trend-fit" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-trend-fit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="assets/fig-trend-fit.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Observed PUDO complaint rate (per 100k trips, ±95% exact Poisson CI) against the fitted trend line and its 95% confidence ribbon, under the primary trips denominator."><img src="assets/fig-trend-fit.png" class="img-fluid figure-img"></a>
+<a href="assets/fig-trend-fit.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Observed PUDO complaint rate (per 100k trips, ±95% exact Poisson CI) against the fitted trend line and its 95% confidence ribbon, under the primary trips denominator."><img src="assets/fig-trend-fit.png" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-trend-fit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Observed PUDO complaint rate (per 100k trips, ±95% exact Poisson CI) against the fitted trend line and its 95% confidence ribbon, under the primary trips denominator.
+Figure&nbsp;2: Observed PUDO complaint rate (per 100k trips, ±95% exact Poisson CI) against the fitted trend line and its 95% confidence ribbon, under the primary trips denominator.
 </figcaption>
 </figure>
 </div>
-<p><a href="#fig-trend-fit" class="quarto-xref">Figure&nbsp;1</a> shows what that decline actually looks like: a sharp drop from the 2024 Q3 launch-ramp quarter, then a rate that wanders inside a fairly narrow, overlapping band of confidence intervals for the rest of the window — a fit that is falling on average, but front-loaded rather than a steady quarter-over-quarter slide.</p>
+<p><a href="#fig-trend-fit" class="quarto-xref">Figure&nbsp;2</a> shows what that decline actually looks like: a sharp drop from the 2024 Q3 launch-ramp quarter, then a rate that wanders inside a fairly narrow, overlapping band of confidence intervals for the rest of the window — a fit that is falling on average, but front-loaded rather than a steady quarter-over-quarter slide.</p>
 <div id="tbl-trend" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-trend-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -725,10 +738,10 @@ Table&nbsp;5: Bayesian Negative-Binomial trend model posterior summary (PyMC/NUT
 <div id="fig-bayes-trend" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-bayes-trend-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="assets/fig-bayes-trend.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Bayesian Negative-Binomial posterior on the per-quarter rate change, vs.&nbsp;the frequentist point estimate and 95% CI."><img src="assets/fig-bayes-trend.png" class="img-fluid figure-img"></a>
+<a href="assets/fig-bayes-trend.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Bayesian Negative-Binomial posterior on the per-quarter rate change, vs.&nbsp;the frequentist point estimate and 95% CI."><img src="assets/fig-bayes-trend.png" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bayes-trend-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: Bayesian Negative-Binomial posterior on the per-quarter rate change, vs.&nbsp;the frequentist point estimate and 95% CI.
+Figure&nbsp;3: Bayesian Negative-Binomial posterior on the per-quarter rate change, vs.&nbsp;the frequentist point estimate and 95% CI.
 </figcaption>
 </figure>
 </div>
@@ -768,14 +781,14 @@ Table&nbsp;6: Bayesian NB posterior sensitivity to the prior width on the trend 
 </div>
 </figure>
 </div>
-<p>To place the hazard on a risk matrix, the consequence of a PUDO event is read off a risk curve — how the event rate falls as severity rises (<a href="#fig-risk-curve" class="quarto-xref">Figure&nbsp;3</a>). Nothing severe or fatal was observed at the PUDO level over the window.</p>
+<p>To place the hazard on a risk matrix, the consequence of a PUDO event is read off a risk curve — how the event rate falls as severity rises (<a href="#fig-risk-curve" class="quarto-xref">Figure&nbsp;4</a>). Nothing severe or fatal was observed at the PUDO level over the window.</p>
 <div id="fig-risk-curve" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-risk-curve-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="assets/fig-risk-curve.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: PUDO risk curve: event rate per 100,000 trips at each step up in consequence severity (log scale). The unfilled bar is a rule-of-three upper bound on a rate with zero observed events, not a measurement."><img src="assets/fig-risk-curve.png" class="img-fluid figure-img"></a>
+<a href="assets/fig-risk-curve.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: PUDO risk curve: event rate per 100,000 trips at each step up in consequence severity (log scale). The unfilled bar is a rule-of-three upper bound on a rate with zero observed events, not a measurement."><img src="assets/fig-risk-curve.png" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-risk-curve-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: PUDO risk curve: event rate per 100,000 trips at each step up in consequence severity (log scale). The unfilled bar is a rule-of-three upper bound on a rate with zero observed events, not a measurement.
+Figure&nbsp;4: PUDO risk curve: event rate per 100,000 trips at each step up in consequence severity (log scale). The unfilled bar is a rule-of-three upper bound on a rate with zero observed events, not a measurement.
 </figcaption>
 </figure>
 </div>
@@ -822,10 +835,10 @@ Table&nbsp;7: PUDO risk-matrix placement under three probability bases (impact h
 <div id="fig-risk-matrix" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-risk-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="assets/fig-risk-matrix.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: PUDO complaint hazard on a probability × impact risk matrix, placed from the data under the per_period probability basis."><img src="assets/fig-risk-matrix.png" class="img-fluid figure-img"></a>
+<a href="assets/fig-risk-matrix.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;5: PUDO complaint hazard on a probability × impact risk matrix, placed from the data under the per_period probability basis."><img src="assets/fig-risk-matrix.png" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-risk-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: PUDO complaint hazard on a probability × impact risk matrix, placed from the data under the <code>per_period</code> probability basis.
+Figure&nbsp;5: PUDO complaint hazard on a probability × impact risk matrix, placed from the data under the <code>per_period</code> probability basis.
 </figcaption>
 </figure>
 </div>
