@@ -243,8 +243,8 @@ not used for inference about the trend.
 
 Because @eq-dispersion rejects equidispersion, the trend is instead estimated
 with Negative-Binomial regression (the NB2 parametrization used by
-`statsmodels`), keeping the same log-linear mean structure and offset as
-@eq-poisson-glm:
+`statsmodels` [@statsmodels]), keeping the same log-linear mean structure and
+offset as @eq-poisson-glm:
 
 $$
 Y_t \mid \mu_t, \alpha \sim \text{NB}(\mu_t, \alpha), \qquad
@@ -298,9 +298,9 @@ quarters do not, by themselves, establish that no trend exists.
 ### Distribution-free trend check (robustness)
 
 As a **robustness check** that assumes no particular count distribution — not
-a replacement for the primary Negative-Binomial fit — Kendall's $\tau$ is
-computed between the quarter index and the per-quarter rate $r_1, \dots, r_n$
-(chronological order):
+a replacement for the primary Negative-Binomial fit — the Mann-Kendall trend
+test [@mann1945; @kendall1975] computes Kendall's $\tau$ between the quarter
+index and the per-quarter rate $r_1, \dots, r_n$ (chronological order):
 
 $$
 \tau = \frac{2}{n(n-1)} \sum_{i < j} \text{sign}\big(r_j - r_i\big)
@@ -317,7 +317,7 @@ parameter *and* dispersion uncertainty — the frequentist fit instead estimates
 $\alpha$ by maximum likelihood and then treats it as *known*, relying on a
 large-sample approximation that a sample this small may not support. The same
 likelihood and exposure structure as @eq-nb2 is refit as a full posterior
-(PyMC, NUTS sampler) with weakly informative priors:
+(PyMC [@pymc], NUTS sampler) with weakly informative priors:
 
 $$
 \begin{aligned}
@@ -524,7 +524,10 @@ ever resolves to (individual complaint/collision coordinates and
 analysis quarters have usable location data, spanning two disjoint California
 service areas — the LA Basin and the SF Bay Area/Peninsula corridor — mapped
 as separate panels below rather than one map with empty Central Valley
-between them.
+between them. Tract boundaries are U.S. Census Bureau TIGER/Line shapefiles
+[@census_tiger_tract] — both the 2020- and 2010-vintage boundaries are used,
+since CPUC/Waymo's tract identifiers mix tracts from both eras — rendered on
+an OpenStreetMap basemap [@openstreetmap].
 
 {{< include assets/tbl-spatial-coverage.md >}}
 
