@@ -496,9 +496,14 @@ choice of prior:
 
 {{< include assets/tbl-bayes-prior-sensitivity.md >}}
 
-To place the hazard on a risk matrix, the consequence of a PUDO event is read
-off a risk curve — how the event rate falls as severity rises (@fig-risk-curve).
-Nothing severe or fatal was observed at the PUDO level over the window.
+### Risk curve & risk matrix
+
+Where the trend result above answers *how the frequency is changing*, this
+subsection places PUDO risk on a probability × impact matrix — the
+risk-assessment framework this paper's core question ultimately serves. The
+consequence side of that placement is read off a risk curve: how the event
+rate falls as severity rises (@fig-risk-curve). Nothing severe or fatal was
+observed at the PUDO level over the window.
 
 ![PUDO risk curve: event rate per 100,000 trips at each step up in consequence
 severity (log scale). The unfilled bar is a rule-of-three upper bound on a
