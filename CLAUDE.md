@@ -51,19 +51,27 @@ across the `pudo-pipeline/` ↔ `project-site/` boundary.
 ```
 src/pudo_pipeline/
   config.py     CPUC zip URLs, raw period -> months, raw->analysis period map,
-                column keeps, WAYMO_TCPIDS
+                column keeps, WAYMO_TCPIDS, Census TIGER URL
   download.py   fetch + unzip (idempotent, handles nested zips)
-  transform.py  CSV -> complaints / monthly / pudo_counts / summary frames
-  build.py      `pudo-build` CLI, writes 5 parquet files
-notebooks/pudo_analysis.ipynb   plots + Poisson/NB trend test
+  transform.py  CSV -> complaints / monthly / pudo_counts / summary /
+                pudo_locations / tract_exposure frames
+  build.py      `pudo-build` CLI, writes 7 parquet files
+  geo.py        Census TIGER tract-boundary download (Section 6 map only -
+                NOT called by build.py / pudo-build; call from the notebook)
+notebooks/pudo_analysis.ipynb   plots + Poisson/NB trend test + spatial map
 ```
 
 Outputs land in `data/parquet/` (override root with `PUDO_DATA_DIR`):
 `complaints.parquet` (ride-level, 2025Q1+ only), `monthly_activity.parquet`,
 `pudo_counts.parquet` (numerator + `all_complaints`, one row per analysis period),
-`pudo_summary.parquet` (the full deliverable table), and
+`pudo_summary.parquet` (the full deliverable table),
 `final_pudo_summary.parquet` (just `period_label` / `trips` / `pudo_complaints`,
-one row per period — the minimal hand-off).
+one row per period — the minimal hand-off),
+`pudo_locations.parquet` (one row per analysis period × Census tract:
+`collisions_pudo` / `collisions_all`, `tract_geoid` normalized to 11-char
+Census GEOID — see Section 6), and `tract_exposure.parquet` (one row per
+period × tract: `tract_trips` = TripsStart + TripsEnd, null wherever the
+source is redacted — see Section 6, only 2024Q3/2024Q4 are non-null).
 
 Every period carries `period_id` (clean `YYYYQn` for sort/filter/join),
 `period_label` (`"2024 Q3 (Jun-Aug)"` etc. — 2024's names are not calendar
@@ -139,6 +147,30 @@ denominators and a matching `pudo_per_100k_*` rate for each (`vmt` /
   collisions can exceed complaints. The `CollisionPUDOAny` OR-of-flags total for
   2025Q2 (54) matches the independent `Incidents_Location.CollisionsPUDO` total,
   so the flag logic is sound.
+- **`AV_Incidents_Location` (tract-level PUDO collisions, Section 6) has full
+  8/8 analysis-period coverage** — every period, including all three 2024
+  filings, ships this file (contrary to an earlier assumption that 2024 might
+  lack it). Its own `Year`/`Quarter` columns are a **filing tag, not the
+  coverage window** — 2024P3_JunAug tags itself `2024,4` and 2024P4_SepNov
+  tags itself `2025,1` — so `load_pudo_locations` ignores them and tags rows
+  with the same directory-based `raw_period` → `analysis_period` map as every
+  other loader. Cross-checking its `collisions_pudo` total against the
+  independent `pudo_counts.pudo_collisions` (ride-level flags) matches exactly
+  in 6 of 8 periods and is within a few counts in the other two (2024Q4,
+  2026Q2) — a good sanity check, not a bug when it doesn't tie out exactly
+  (different source files, and 2024Q4 combines two raw filings).
+- **`Tract` is a 10-char unpadded GEOID** (`6037139705` = 1-digit CA state code
+  + 3-digit county + 6-digit tract). Normalized to the 11-char Census GEOID
+  (`06037139705`) by zero-padding (`str.zfill(11)`) — every observed tract is
+  in California (counties 037/075/081/085/087 = LA + SF Bay Area).
+- **`AV_Monthly_Tract` (`TripsStart`/`TripsEnd`, tract-level exposure) is
+  redacted from 2025Q1 onward** — every row is the string `"Redacted"`. Only
+  2024Q3 and 2024Q4 have real values. This is the opposite of most redaction
+  in this dataset (usually a column is redacted in *every* period); the
+  exposure-adjusted spatial map in Section 6 is consequently a 2-quarter-only
+  view, not a full-window one. Unlike `Incidents_Location`, this file's own
+  `Year`/`Month` columns ARE the real coverage months (matches `Month_Level`'s
+  convention) — `load_tract_exposure` uses them directly.
 
 ## Analysis plan (implemented in the notebook)
 
@@ -180,7 +212,37 @@ denominators and a matching `pudo_per_100k_*` rate for each (`vmt` /
    Any future Bayesian addition should follow the same pattern established
    here: report R-hat + divergence count, and run a prior-sensitivity sweep
    before trusting the posterior.
-6. **§5 Risk curve & matrix** — (already trips-based, unchanged) risk curve =
+6. **§6 Spatial PUDO risk** (new) — tract-level PUDO collision counts from
+   `pudo_locations.parquet`, joined to Census TIGER/Line tract boundaries
+   (`geo.py::load_combined_tract_boundaries`, downloaded on demand — not part
+   of `pudo-build`) for an interactive Plotly (`choropleth_map`, MapLibre —
+   no Mapbox token needed) map of raw `collisions_pudo` counts, full 8-quarter
+   coverage, plus an optional exposure-adjusted map
+   (`collisions_pudo / tract_trips * 100k`, 2024Q3/Q4 only — `tract_trips` is
+   redacted from 2025Q1 on). These are **aggregated tract-level collision
+   counts, not individual complaint locations** — `PUDOTravelLane` and all
+   incident-level lat/long are still redacted (see above); the map cannot
+   show where within a tract, or which complaints (as opposed to collisions),
+   occurred. Two implementation gotchas worth not re-discovering:
+   - **Two Census tract vintages are required, not one.** CPUC/Waymo's
+     `Tract` GEOIDs mix pre- and post-2020-redistricting boundaries — a
+     single TIGER year (e.g. 2024) matches only 1,796 of the 1,967 distinct
+     observed tracts; a single 2010-vintage year (e.g. 2019) matches only
+     1,603. The union of both matches all 1,967. `geo.py` downloads and
+     unions both vintages (`CENSUS_TIGER_YEARS` in `config.py`).
+   - **Waymo's CA footprint is two disjoint clusters** (LA Basin, county 037;
+     SF Bay Area/Peninsula, counties 075/081/085/087) with empty Central
+     Valley between them — a single map centered on their combined
+     centroid/bounds shows mostly nothing. The notebook renders one panel per
+     region, with zoom computed from each panel's own bounding box (not a
+     hardcoded per-region constant) since the exposure-restricted 2024Q3/Q4
+     subset covers a much smaller footprint (barely reaches outside SF
+     proper) than the full-window raw-count view.
+   - Tract polygons are simplified (`geometry.simplify(0.0002)`) before
+     building the Plotly figures — native TIGER precision bloats the
+     notebook's embedded interactive output to ~30MB for no visible benefit
+     at city zoom levels; simplified it's ~6MB.
+7. **§5 Risk curve & matrix** — (already trips-based, unchanged) risk curve =
    PUDO event rate per 100k trips at each severity step (complaint 1.97 →
    collision 1.69 → VRU collision 0.05 → severe/fatal 0, upper bound 0.02);
    sets Impact = **Minor**. 5×5 Impact × Probability heat-map with

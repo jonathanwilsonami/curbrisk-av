@@ -211,6 +211,7 @@ window.Quarto = {
   <li><a href="#launch-period-sensitivity-1" id="toc-launch-period-sensitivity-1" class="nav-link" data-scroll-target="#launch-period-sensitivity-1"><span class="header-section-number">5.0.2</span> Launch-period sensitivity</a></li>
   <li><a href="#robustness-checks" id="toc-robustness-checks" class="nav-link" data-scroll-target="#robustness-checks"><span class="header-section-number">5.0.3</span> Robustness checks</a></li>
   <li><a href="#bayesian-robustness-check" id="toc-bayesian-robustness-check" class="nav-link" data-scroll-target="#bayesian-robustness-check"><span class="header-section-number">5.0.4</span> Bayesian robustness check</a></li>
+  <li><a href="#spatial-pudo-risk" id="toc-spatial-pudo-risk" class="nav-link" data-scroll-target="#spatial-pudo-risk"><span class="header-section-number">5.0.5</span> Spatial PUDO risk</a></li>
   </ul></li>
   <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion"><span class="header-section-number">6</span> Discussion</a>
   <ul class="collapse">
@@ -980,6 +981,311 @@ Table&nbsp;9: PUDO risk-matrix placement under three probability bases (impact h
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-risk-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;5: PUDO complaint hazard on a probability × impact risk matrix, placed from the data under the <code>per_period</code> probability basis.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="spatial-pudo-risk" class="level3" data-number="5.0.5">
+<h3 data-number="5.0.5" class="anchored" data-anchor-id="spatial-pudo-risk"><span class="header-section-number">5.0.5</span> Spatial PUDO risk</h3>
+<p><code>AV_Incidents_Location</code> gives PUDO collision counts aggregated to the Census-tract level, per analysis quarter — the finest location this dataset ever resolves to (individual complaint/collision coordinates and <code>PUDOTravelLane</code> remain redacted, as throughout this paper). All 8 of 8 analysis quarters have usable location data, spanning two disjoint California service areas — the LA Basin and the SF Bay Area/Peninsula corridor — mapped as separate panels below rather than one map with empty Central Valley between them.</p>
+<div id="tbl-spatial-coverage" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-spatial-coverage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;10: Geographic coverage of AV_Incidents_Location by analysis quarter: tracts reporting, tracts with at least one PUDO collision, and pooled counts (all 8/8 analysis quarters have usable data).
+</figcaption>
+<div aria-describedby="tbl-spatial-coverage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 19%">
+<col style="width: 18%">
+<col style="width: 27%">
+<col style="width: 17%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>period</th>
+<th>tracts reporting</th>
+<th>tracts w/ PUDO collision</th>
+<th>PUDO collisions</th>
+<th>all collisions</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>2024 Q3 (Jun-Aug)</td>
+<td>1351</td>
+<td>9</td>
+<td>11.0</td>
+<td>55.0</td>
+</tr>
+<tr class="even">
+<td>2024 Q4 (Sep-Dec)</td>
+<td>1351</td>
+<td>25</td>
+<td>30.0</td>
+<td>47.0</td>
+</tr>
+<tr class="odd">
+<td>2025 Q1</td>
+<td>1496</td>
+<td>29</td>
+<td>34.0</td>
+<td>133.0</td>
+</tr>
+<tr class="even">
+<td>2025 Q2</td>
+<td>1496</td>
+<td>46</td>
+<td>54.0</td>
+<td>165.0</td>
+</tr>
+<tr class="odd">
+<td>2025 Q3</td>
+<td>1796</td>
+<td>38</td>
+<td>46.0</td>
+<td>168.0</td>
+</tr>
+<tr class="even">
+<td>2025 Q4</td>
+<td>1796</td>
+<td>40</td>
+<td>50.0</td>
+<td>266.0</td>
+</tr>
+<tr class="odd">
+<td>2026 Q1</td>
+<td>1796</td>
+<td>60</td>
+<td>69.0</td>
+<td>301.0</td>
+</tr>
+<tr class="even">
+<td>2026 Q2</td>
+<td>1796</td>
+<td>55</td>
+<td>65.0</td>
+<td>297.0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>The two maps below are interactive in the HTML edition of this paper — pan, zoom, and hover any tract for its GEOID, PUDO collision count, total collision count, and which analysis quarters it reported in:</p>
+<iframe src="assets/fig-spatial-raw-la-basin.html" width="100%" height="650" style="border:1px solid #ccc;" title="Interactive map: PUDO collisions by tract, LA Basin">
+</iframe>
+<p><em>Interactive: PUDO collisions by Census tract, LA Basin (2024 Q3 – 2026 Q2).</em></p>
+<iframe src="assets/fig-spatial-raw-sf-bay-area.html" width="100%" height="650" style="border:1px solid #ccc;" title="Interactive map: PUDO collisions by tract, SF Bay Area">
+</iframe>
+<p><em>Interactive: PUDO collisions by Census tract, SF Bay Area (2024 Q3 – 2026 Q2).</em></p>
+<p>The color scale is capped at 8 PUDO collisions rather than the true maximum of 18: collision counts per tract are heavily right-skewed (148 of 208 nonzero tracts have exactly one), so an uncapped linear scale would render almost every tract the same pale color. The two tracts above the cap (12 and 18) simply render at maximum intensity; their exact counts remain visible on hover in the HTML version and in <a href="#tbl-spatial-top-tracts" class="quarto-xref">Table&nbsp;11</a> below.</p>
+<p>San Francisco stands out: despite far fewer tracts than LA County (280 vs. 1,102), it accounts for the largest share of PUDO collisions (225 of 359, 63%), with the single densest concentration visible as the darkest tract in the SF Bay Area map, in San Francisco proper.</p>
+<div id="tbl-spatial-top-tracts" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-spatial-top-tracts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;11: Top 10 Census tracts by total PUDO collisions, summed across all available analysis quarters. Aggregated tract-level counts, not individual complaint locations.
+</figcaption>
+<div aria-describedby="tbl-spatial-top-tracts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 12%">
+<col style="width: 11%">
+<col style="width: 14%">
+<col style="width: 52%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>tract GEOID</th>
+<th>PUDO collisions</th>
+<th>all collisions</th>
+<th>periods reporting</th>
+<th>periods</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>06075011700</td>
+<td>18.0</td>
+<td>55.0</td>
+<td>8</td>
+<td>2024Q3, 2024Q4, 2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
+</tr>
+<tr class="even">
+<td>06075010101</td>
+<td>12.0</td>
+<td>21.0</td>
+<td>6</td>
+<td>2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
+</tr>
+<tr class="odd">
+<td>06075061507</td>
+<td>7.0</td>
+<td>15.0</td>
+<td>6</td>
+<td>2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
+</tr>
+<tr class="even">
+<td>06075018000</td>
+<td>7.0</td>
+<td>27.0</td>
+<td>8</td>
+<td>2024Q3, 2024Q4, 2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
+</tr>
+<tr class="odd">
+<td>06075061501</td>
+<td>7.0</td>
+<td>20.0</td>
+<td>6</td>
+<td>2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
+</tr>
+<tr class="even">
+<td>06075061500</td>
+<td>6.0</td>
+<td>8.0</td>
+<td>2</td>
+<td>2024Q3, 2024Q4</td>
+</tr>
+<tr class="odd">
+<td>06075010600</td>
+<td>6.0</td>
+<td>21.0</td>
+<td>8</td>
+<td>2024Q3, 2024Q4, 2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
+</tr>
+<tr class="even">
+<td>06075022600</td>
+<td>6.0</td>
+<td>8.0</td>
+<td>8</td>
+<td>2024Q3, 2024Q4, 2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
+</tr>
+<tr class="odd">
+<td>06037267600</td>
+<td>5.0</td>
+<td>7.0</td>
+<td>8</td>
+<td>2024Q3, 2024Q4, 2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
+</tr>
+<tr class="even">
+<td>06075020702</td>
+<td>5.0</td>
+<td>7.0</td>
+<td>6</td>
+<td>2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>A second, narrower view adjusts for exposure — PUDO collisions per 100,000 trips — but only for <strong>2024 Q3–Q4</strong>: <code>AV_Monthly_Tract</code>’s <code>TripsStart</code>/ <code>TripsEnd</code> are redacted at source for every period from 2025 Q1 onward, so a per-trip rate cannot be computed for the majority of the study window. It is a supplement to, not a replacement for, the full-window raw-count maps above.</p>
+<div id="tbl-spatial-rate-top-tracts" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-spatial-rate-top-tracts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;12: Top 10 Census tracts by PUDO-collision rate per 100k trips, 2024Q3 - 2024Q4 only (TripsStart/TripsEnd are redacted from 2025 Q1 onward, so this exposure-adjusted view cannot be extended to the rest of the study window).
+</figcaption>
+<div aria-describedby="tbl-spatial-rate-top-tracts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 17%">
+<col style="width: 24%">
+<col style="width: 27%">
+<col style="width: 30%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>tract GEOID</th>
+<th>PUDO collisions</th>
+<th>trips (start+end)</th>
+<th>rate per 100k trips</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>06037191902</td>
+<td>1.0</td>
+<td>3332.0</td>
+<td>30.01</td>
+</tr>
+<tr class="even">
+<td>06037700200</td>
+<td>1.0</td>
+<td>5055.0</td>
+<td>19.78</td>
+</tr>
+<tr class="odd">
+<td>06037701801</td>
+<td>1.0</td>
+<td>5805.0</td>
+<td>17.23</td>
+</tr>
+<tr class="even">
+<td>06037214800</td>
+<td>1.0</td>
+<td>7404.0</td>
+<td>13.51</td>
+</tr>
+<tr class="odd">
+<td>06037700300</td>
+<td>1.0</td>
+<td>7444.0</td>
+<td>13.43</td>
+</tr>
+<tr class="even">
+<td>06037190100</td>
+<td>1.0</td>
+<td>7752.0</td>
+<td>12.9</td>
+</tr>
+<tr class="odd">
+<td>06037190700</td>
+<td>1.0</td>
+<td>9134.0</td>
+<td>10.95</td>
+</tr>
+<tr class="even">
+<td>06075021600</td>
+<td>1.0</td>
+<td>12006.0</td>
+<td>8.33</td>
+</tr>
+<tr class="odd">
+<td>06075017101</td>
+<td>1.0</td>
+<td>15051.0</td>
+<td>6.64</td>
+</tr>
+<tr class="even">
+<td>06075021100</td>
+<td>1.0</td>
+<td>19533.0</td>
+<td>5.12</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div id="fig-spatial-rate-la" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-spatial-rate-la-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="assets/fig-spatial-rate-la-basin.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;6: PUDO collision rate per 100,000 trips by tract, LA Basin — 2024 Q3–Q4 ONLY (exposure data are redacted for every later quarter)."><img src="assets/fig-spatial-rate-la-basin.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-spatial-rate-la-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: PUDO collision rate per 100,000 trips by tract, LA Basin — 2024 Q3–Q4 ONLY (exposure data are redacted for every later quarter).
+</figcaption>
+</figure>
+</div>
+<div id="fig-spatial-rate-bay" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-spatial-rate-bay-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="assets/fig-spatial-rate-sf-bay-area.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;7: PUDO collision rate per 100,000 trips by tract, SF Bay Area — 2024 Q3–Q4 ONLY (exposure data are redacted for every later quarter)."><img src="assets/fig-spatial-rate-sf-bay-area.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-spatial-rate-bay-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7: PUDO collision rate per 100,000 trips by tract, SF Bay Area — 2024 Q3–Q4 ONLY (exposure data are redacted for every later quarter).
 </figcaption>
 </figure>
 </div>

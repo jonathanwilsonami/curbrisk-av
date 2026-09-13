@@ -515,6 +515,77 @@ matrix as follows:
 ![PUDO complaint hazard on a probability × impact risk matrix, placed from the
 data under the `per_period` probability basis.](assets/fig-risk-matrix.png){#fig-risk-matrix}
 
+### Spatial PUDO risk
+
+`AV_Incidents_Location` gives PUDO collision counts aggregated to the
+Census-tract level, per analysis quarter — the finest location this dataset
+ever resolves to (individual complaint/collision coordinates and
+`PUDOTravelLane` remain redacted, as throughout this paper). All 8 of 8
+analysis quarters have usable location data, spanning two disjoint California
+service areas — the LA Basin and the SF Bay Area/Peninsula corridor — mapped
+as separate panels below rather than one map with empty Central Valley
+between them.
+
+{{< include assets/tbl-spatial-coverage.md >}}
+
+The two maps below are interactive in the HTML edition of this paper — pan,
+zoom, and hover any tract for its GEOID, PUDO collision count, total collision
+count, and which analysis quarters it reported in:
+
+:::: {.content-visible when-format="html"}
+<iframe src="assets/fig-spatial-raw-la-basin.html" width="100%" height="650"
+        style="border:1px solid #ccc;"
+        title="Interactive map: PUDO collisions by tract, LA Basin"></iframe>
+
+*Interactive: PUDO collisions by Census tract, LA Basin (2024 Q3 – 2026 Q2).*
+
+<iframe src="assets/fig-spatial-raw-sf-bay-area.html" width="100%" height="650"
+        style="border:1px solid #ccc;"
+        title="Interactive map: PUDO collisions by tract, SF Bay Area"></iframe>
+
+*Interactive: PUDO collisions by Census tract, SF Bay Area (2024 Q3 – 2026 Q2).*
+::::
+
+:::: {.content-visible when-format="pdf"}
+![PUDO collisions by Census tract, LA Basin (2024 Q3 – 2026 Q2). The HTML
+edition of this paper has an interactive, pannable/zoomable version of this
+map.](assets/fig-spatial-raw-la-basin.png){#fig-spatial-la}
+
+![PUDO collisions by Census tract, SF Bay Area (2024 Q3 – 2026 Q2). The HTML
+edition of this paper has an interactive, pannable/zoomable version of this
+map.](assets/fig-spatial-raw-sf-bay-area.png){#fig-spatial-bay}
+::::
+
+The color scale is capped at 8 PUDO collisions rather than the true maximum
+of 18: collision counts per tract are heavily right-skewed (148 of 208
+nonzero tracts have exactly one), so an uncapped linear scale would render
+almost every tract the same pale color. The two tracts above the cap (12 and
+18) simply render at maximum intensity; their exact counts remain visible on
+hover in the HTML version and in @tbl-spatial-top-tracts below.
+
+San Francisco stands out: despite far fewer tracts than LA County (280 vs.
+1,102), it accounts for the largest share of PUDO collisions (225 of 359,
+63%), with the single densest concentration visible as the darkest tract in
+the SF Bay Area map, in San Francisco proper.
+
+{{< include assets/tbl-spatial-top-tracts.md >}}
+
+A second, narrower view adjusts for exposure — PUDO collisions per 100,000
+trips — but only for **2024 Q3–Q4**: `AV_Monthly_Tract`'s `TripsStart`/
+`TripsEnd` are redacted at source for every period from 2025 Q1 onward, so a
+per-trip rate cannot be computed for the majority of the study window. It is
+a supplement to, not a replacement for, the full-window raw-count maps above.
+
+{{< include assets/tbl-spatial-rate-top-tracts.md >}}
+
+![PUDO collision rate per 100,000 trips by tract, LA Basin — 2024 Q3–Q4 ONLY
+(exposure data are redacted for every later
+quarter).](assets/fig-spatial-rate-la-basin.png){#fig-spatial-rate-la}
+
+![PUDO collision rate per 100,000 trips by tract, SF Bay Area — 2024 Q3–Q4
+ONLY (exposure data are redacted for every later
+quarter).](assets/fig-spatial-rate-sf-bay-area.png){#fig-spatial-rate-bay}
+
 # Discussion
 
 ## Key Concepts and Definitions

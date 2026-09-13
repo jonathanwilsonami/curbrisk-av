@@ -5,8 +5,8 @@ in Waymo's CPUC AV Deployment quarterly reports, covering **2024 Q3 – 2026 Q2*
 (8 quarters).
 
 Downloads the public report zips from the CPUC website, extracts the
-Incidents-Complaints and Month-Level files, and compiles them into five parquet
-datasets ready for analysis.
+Incidents-Complaints, Month-Level, Incidents-Location, and Monthly-Tract files,
+and compiles them into seven parquet datasets ready for analysis.
 
 ## Quick start
 
@@ -67,6 +67,8 @@ Every per-period row carries `period_id` (`YYYYQn`, clean to sort/filter/join),
 | `pudo_counts.parquet` | one row per analysis period | `pudo_complaints`, `pudo_collisions`, `all_complaints` (every complaint category), `ride_rows`, `pudo_travel_lane` (always null — redacted), `schema` (`aggregate` / `microdata`) |
 | `pudo_summary.parquet` | one row per analysis period | `pudo_counts` joined to exposure. Five denominators — `trips` (primary), `vmt_total`, `vmt_p1` (deadhead→pickup), `vmt_p3` (passenger→dropoff), `vmt_p1_p3` — each with a `pudo_per_100k_*` rate, plus `deadhead_share`, `pudo_share_of_complaints`, `pudo_per_million_rides` |
 | `final_pudo_summary.parquet` | one row per analysis period | the minimal hand-off: `period_label`, `trips`, `pudo_complaints` |
+| `pudo_locations.parquet` | one row per analysis period × Census tract | `collisions_pudo`, `collisions_all`, `tract_geoid` (11-char Census GEOID), `pudo_travel_lane` (always null). Full 8/8-period coverage. |
+| `tract_exposure.parquet` | one row per analysis period × Census tract | `tract_trips` (`TripsStart + TripsEnd`); non-null **only for 2024Q3/2024Q4** — redacted from 2025Q1 on. |
 
 ## Data notes & caveats
 
@@ -89,5 +91,19 @@ Every per-period row carries `period_id` (`YYYYQn`, clean to sort/filter/join),
   loader matches all of these and ignores the `Monthly_Tract` file.
 - The Jun–Aug 2024 zip also contains **Cruise** files and every report ships a
   header-only **Drivered** tree; both are filtered out by path + TCPID.
+- **`AV_Incidents_Location`'s own `Year`/`Quarter` columns are a filing tag,
+  not the coverage window** (e.g. the Jun-Aug 2024 file tags itself `2024,4`).
+  `load_pudo_locations` ignores them and tags rows the same directory-based way
+  every other loader does. `Tract` is a 10-char unpadded GEOID
+  (`6037139705`); zero-padded to the 11-char Census GEOID (`06037139705`).
+- **`AV_Monthly_Tract`'s `TripsStart`/`TripsEnd` are redacted from 2025Q1
+  onward** (every row is the literal string `"Redacted"`) — only 2024Q3/2024Q4
+  have real per-tract trip counts, so the exposure-adjusted spatial map only
+  covers those two quarters. Unlike Incidents_Location, this file's own
+  `Year`/`Month` are real (matches Month-Level's convention).
+- **Census tract boundaries** (`src/pudo_pipeline/geo.py`) are a separate,
+  one-time ~30MB TIGER/Line download for the notebook's Section 6 map only —
+  `pudo-build` never touches it; call `geo.ensure_tract_boundaries()` from the
+  notebook.
 - Source page: CPUC AV Program Quarterly Reporting
   (cpuc.ca.gov → Licensing → Autonomous Vehicle Programs → Quarterly Reporting).

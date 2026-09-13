@@ -18,6 +18,9 @@ dependencies = [
     "jupyter",
     "pymc>=5.10",
     "arviz>=0.17",
+    "geopandas>=1.0",
+    "plotly>=5.24",
+    "kaleido>=0.2",
 ]
 
 [project.scripts]

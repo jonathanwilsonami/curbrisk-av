@@ -32,6 +32,20 @@ Source-data facts worth not re-deriving:
 * The Jun-Aug 2024 zip also contains Cruise files (TCPID ``PSG0039080``); every
   report also ships a parallel header-only "Drivered" tree. Both are filtered
   out by ``WAYMO_TCPID`` + a ``drivered`` path check.
+* ``AV_Incidents_Location`` (tract-level PUDO collision counts) carries its own
+  ``Year``/``Quarter`` columns, but they are a FILING tag, not the coverage
+  window - the 2024P3_JunAug file tags itself ``2024,4`` and 2024P4_SepNov
+  tags itself ``2025,1``. ``load_pudo_locations`` ignores those columns and
+  tags rows with the directory-based ``raw_period``/``analysis_period`` like
+  every other loader. ``Tract`` is a 10-char unpadded GEOID (``6037139705``);
+  normalized to the 11-char Census GEOID (``06037139705``) by zero-padding.
+* ``AV_Monthly_Tract`` (``TripsStart``/``TripsEnd``, the tract-level exposure
+  file) has real per-row ``Year``/``Month`` like Month_Level - unlike
+  Incidents_Location. Its trip counts are populated for 2024Q3/2024Q4 only;
+  every 2025Q1+ file has them fully redacted (``"Redacted"`` on every row), so
+  tract-level exposure rates can only be computed for the first two analysis
+  quarters. ``load_tract_exposure`` handles this via ordinary null
+  propagation, not a special case.
 """
 
 import calendar
@@ -206,3 +220,25 @@ MONTH_LEVEL_KEEP = [
     "TotalPMT",
 ]
 MONTH_LEVEL_VMT_COLS = ["TotalVMTPeriod1", "TotalVMTPeriod2", "TotalVMTPeriod3"]
+
+# AV_Incidents_Location columns (tract-level PUDO collision counts). Own
+# Year/Quarter are a filing tag, not the coverage window - not kept, see the
+# module docstring. PUDOTravelLane is redacted in every file (never a real 0).
+INCIDENTS_LOCATION_KEEP = ["TCPID", "Tract", "CollisionsAll", "CollisionsPUDO", "PUDOTravelLane"]
+
+# AV_Monthly_Tract columns (tract-level exposure). Real per-row Year/Month
+# (kept, unlike Incidents_Location). TripsStart/TripsEnd are redacted on every
+# row from 2025Q1 onward - see the module docstring.
+MONTHLY_TRACT_KEEP = ["TCPID", "Year", "Month", "Tract", "TripsStart", "TripsEnd"]
+
+# --------------------------------------------------------------------------- #
+# Census TIGER/Line tract boundaries (Section 6 spatial map only - separate
+# from the CPUC download/build flow; see geo.py)
+# --------------------------------------------------------------------------- #
+CENSUS_STATE_FIPS = "06"  # California - every observed PUDO tract is in CA
+# TWO vintages are needed, not one: CPUC/Waymo's tract GEOIDs mix pre- and
+# post-2020-redistricting boundaries (empirically, of ~1,967 distinct tracts
+# observed in AV_Incidents_Location, only 1,796 match 2020-vintage boundaries
+# and only 1,603 match 2010-vintage boundaries; the union matches all 1,967).
+# TIGER year -> Census tract vintage it uses. See geo.py.
+CENSUS_TIGER_YEARS = {2024: "2020", 2019: "2010"}

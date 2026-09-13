@@ -21,6 +21,8 @@ from .transform import (
     load_complaints,
     load_monthly,
     load_pudo_counts,
+    load_pudo_locations,
+    load_tract_exposure,
 )
 
 
@@ -44,6 +46,8 @@ def main() -> None:
     monthly = load_monthly(extracted)
     pudo_counts = load_pudo_counts(extracted)
     summary = build_summary(pudo_counts, monthly)
+    pudo_locations = load_pudo_locations(extracted)
+    tract_exposure = load_tract_exposure(extracted)
 
     # The minimal deliverable: one label + the numerator + the headline
     # denominator, one row per analysis period.
@@ -54,8 +58,10 @@ def main() -> None:
     pudo_counts.write_parquet(out / "pudo_counts.parquet")
     summary.write_parquet(out / "pudo_summary.parquet")
     final_summary.write_parquet(out / "final_pudo_summary.parquet")
+    pudo_locations.write_parquet(out / "pudo_locations.parquet")
+    tract_exposure.write_parquet(out / "tract_exposure.parquet")
 
-    print(f"\n[done] wrote 5 parquet files to {out}/")
+    print(f"\n[done] wrote 7 parquet files to {out}/")
     with pl.Config(tbl_cols=-1, tbl_width_chars=200):
         print(final_summary)
 

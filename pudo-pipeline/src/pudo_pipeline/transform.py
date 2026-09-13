@@ -50,8 +50,10 @@ from .config import (
     COMPLAINT_FLAGS,
     COMPLAINT_KEEP,
     COLLISION_PUDO_FLAGS,
+    INCIDENTS_LOCATION_KEEP,
     MONTH_LEVEL_KEEP,
     MONTH_LEVEL_VMT_COLS,
+    MONTHLY_TRACT_KEEP,
     PERIODS,
     RAW_TO_ANALYSIS,
     WAYMO_TCPIDS,
@@ -59,6 +61,15 @@ from .config import (
 
 _MONTH_LEVEL_RE = re.compile(r"month[_ -]?level|month[_ -]?part\d", re.IGNORECASE)
 _MONTHLY_TRACT_RE = re.compile(r"monthly[_ -]?tract", re.IGNORECASE)
+_INCIDENTS_LOCATION_RE = re.compile(r"incidents[_-]location", re.IGNORECASE)
+
+
+def _normalize_tract_geoid(col: str = "Tract") -> pl.Expr:
+    """CPUC's ``Tract`` is a 10-char unpadded GEOID (``6037139705``, i.e. a
+    1-digit CA state code + 3-digit county + 6-digit tract). Zero-pad to the
+    standard 11-char Census GEOID (``06037139705``) so it joins cleanly against
+    TIGER/Line boundary data."""
+    return pl.col(col).str.zfill(11).alias("tract_geoid")
 
 
 def _read_csv_str(path: Path) -> pl.DataFrame:
@@ -197,6 +208,188 @@ def load_monthly(extract_dir: Path) -> pl.DataFrame:
         .sort(["year", "month"])
     )
     return out
+
+
+# --------------------------------------------------------------------------- #
+# tract-level PUDO collision counts (Section 6 spatial map)
+# --------------------------------------------------------------------------- #
+def _location_files(pdir: Path) -> list[Path]:
+    return [
+        f
+        for f in sorted(pdir.rglob("*.csv"))
+        if _INCIDENTS_LOCATION_RE.search(f.name)
+        and not _is_drivered(f)
+        and not _is_other_carrier(f)
+    ]
+
+
+def load_pudo_locations(extract_dir: Path) -> pl.DataFrame:
+    """One row per (analysis period, tract): PUDO collision counts by Census
+    tract, for the Section 6 spatial map.
+
+    Handles a missing file per period gracefully (warns, skips - some periods
+    may not ship this dataset). The file's own ``Year``/``Quarter`` columns are
+    a filing tag, not the coverage window (see ``config`` module docstring) -
+    rows are tagged with the same directory-based ``raw_period`` ->
+    ``analysis_period`` map used everywhere else. ``PUDOTravelLane`` is always
+    null (redacted at source in every file).
+    """
+    frames = []
+    for raw_period in PERIODS:
+        pdir = extract_dir / raw_period
+        if not pdir.exists():
+            continue
+        files = _location_files(pdir)
+        if not files:
+            warnings.warn(
+                f"{raw_period}: no AV_Incidents_Location file found - spatial "
+                "coverage will have a gap for this period",
+                stacklevel=2,
+            )
+            continue
+        for f in files:
+            df = _read_waymo(f)
+            if df.height == 0:
+                continue
+            _warn_missing_columns(f, INCIDENTS_LOCATION_KEEP, df.columns)
+            keep = [c for c in INCIDENTS_LOCATION_KEEP if c in df.columns]
+            df = df.select(keep)
+            if "Tract" not in df.columns:
+                warnings.warn(f"{f.name}: no Tract column - skipped", stacklevel=2)
+                continue
+            numeric = [c for c in ("CollisionsAll", "CollisionsPUDO") if c in df.columns]
+            df = _cast_numeric_with_warning(df, numeric, f)
+            meta = ANALYSIS_PERIOD_META[RAW_TO_ANALYSIS[raw_period]]
+            df = df.with_columns(
+                _normalize_tract_geoid(),
+                pl.lit(meta["period_id"]).alias("period_id"),
+                pl.lit(meta["period_label"]).alias("period_label"),
+                pl.lit(raw_period).alias("raw_period"),
+            )
+            frames.append(df)
+    if not frames:
+        raise FileNotFoundError(
+            f"No AV_Incidents_Location CSVs found under {extract_dir}"
+        )
+
+    out = pl.concat(frames, how="diagonal")
+    # A tract can in principle appear twice within one period (e.g. a stray
+    # duplicate export) - sum rather than assume one row per tract per period.
+    agg_exprs = []
+    if "CollisionsPUDO" in out.columns:
+        agg_exprs.append(pl.col("CollisionsPUDO").sum().alias("collisions_pudo"))
+    if "CollisionsAll" in out.columns:
+        agg_exprs.append(pl.col("CollisionsAll").sum().alias("collisions_all"))
+    return (
+        out.group_by(["period_id", "period_label", "tract_geoid"])
+        .agg(*agg_exprs)
+        .with_columns(
+            pl.lit(None, dtype=pl.Int64).alias("pudo_travel_lane")  # redacted
+        )
+        .sort(["period_id", "tract_geoid"])
+    )
+
+
+# --------------------------------------------------------------------------- #
+# tract-level exposure (Section 6 optional exposure-adjusted map)
+# --------------------------------------------------------------------------- #
+def _tract_files(pdir: Path) -> list[Path]:
+    return [
+        f
+        for f in sorted(pdir.rglob("*.csv"))
+        if _MONTHLY_TRACT_RE.search(f.name)
+        and not _is_drivered(f)
+        and not _is_other_carrier(f)
+    ]
+
+
+def load_tract_exposure(extract_dir: Path) -> pl.DataFrame:
+    """One row per (analysis period, tract): trips starting or ending in that
+    tract, for the optional exposure-adjusted map in Section 6.
+
+    Unlike Incidents_Location, this file's own ``Year``/``Month`` ARE the real
+    coverage months (same convention as Month_Level), so they are used
+    directly rather than the directory-based period map. ``TripsStart`` /
+    ``TripsEnd`` are fully redacted from 2025Q1 onward (see the config module
+    docstring) - periods after 2024Q4 will have an all-null ``tract_trips``.
+    """
+    frames = []
+    for raw_period in PERIODS:
+        pdir = extract_dir / raw_period
+        if not pdir.exists():
+            continue
+        files = _tract_files(pdir)
+        if not files:
+            warnings.warn(
+                f"{raw_period}: no AV_Monthly_Tract file found", stacklevel=2
+            )
+            continue
+        for f in files:
+            df = _read_waymo(f)
+            if df.height == 0:
+                continue
+            _warn_missing_columns(f, MONTHLY_TRACT_KEEP, df.columns)
+            keep = [c for c in MONTHLY_TRACT_KEEP if c in df.columns]
+            df = df.select(keep)
+            if "Tract" not in df.columns:
+                continue
+            numeric = [c for c in ("TripsStart", "TripsEnd") if c in df.columns]
+            df = _cast_numeric_with_warning(df, numeric, f)
+            df = df.with_columns(
+                _normalize_tract_geoid(),
+                pl.col("Year").cast(pl.Int32, strict=False).alias("year"),
+                pl.col("Month").cast(pl.Int8, strict=False).alias("month"),
+                pl.lit(raw_period).alias("raw_period"),
+            )
+            frames.append(df)
+    if not frames:
+        raise FileNotFoundError(f"No AV_Monthly_Tract CSVs found under {extract_dir}")
+
+    out = pl.concat(frames, how="diagonal")
+    trip_cols = [c for c in ("TripsStart", "TripsEnd") if c in out.columns]
+    if trip_cols:
+        # Track "is this row redacted" BEFORE the groupby-sum below: Polars'
+        # sum() of an all-null group silently returns 0.0, not null, which
+        # would erase the 2025Q1+ redaction signal if checked after summing.
+        out = out.with_columns(
+            pl.any_horizontal([pl.col(c).is_not_null() for c in trip_cols])
+            .alias("_row_has_trips")
+        )
+        out = out.group_by(["year", "month", "tract_geoid"]).agg(
+            *[pl.col(c).sum().alias(c) for c in trip_cols],
+            pl.col("_row_has_trips").any().alias("_has_trips"),
+        ).with_columns(
+            pl.sum_horizontal([pl.col(c).fill_null(0) for c in trip_cols])
+            .alias("_sum")
+        ).with_columns(
+            pl.when(pl.col("_has_trips")).then(pl.col("_sum")).otherwise(None)
+            .alias("tract_trips")
+        ).drop(["_sum", "_has_trips", *trip_cols])
+    else:
+        out = out.group_by(["year", "month", "tract_geoid"]).agg()
+        out = out.with_columns(pl.lit(None, dtype=pl.Float64).alias("tract_trips"))
+
+    # fold months into analysis periods, same map build_summary uses for VMT/trips
+    month_map = pl.DataFrame(
+        [
+            {"period_id": pid, "year": y, "month": m}
+            for pid, months in ANALYSIS_PERIOD_MONTHS.items()
+            for (y, m) in months
+        ]
+    ).with_columns(pl.col("year").cast(pl.Int32), pl.col("month").cast(pl.Int8))
+
+    return (
+        month_map.join(out, on=["year", "month"], how="left")
+        .group_by(["period_id", "tract_geoid"])
+        .agg(
+            pl.when(pl.col("tract_trips").is_not_null().any())
+            .then(pl.col("tract_trips").sum())
+            .otherwise(None)
+            .alias("tract_trips")
+        )
+        .filter(pl.col("tract_geoid").is_not_null())
+        .sort(["period_id", "tract_geoid"])
+    )
 
 
 # --------------------------------------------------------------------------- #
