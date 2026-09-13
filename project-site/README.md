@@ -10,8 +10,8 @@ The main site is built using **Quarto**, which converts `.qmd` (and `.ipynb`) fi
 - **About Page** → `about.qmd`  
   Team bios and project context
 
-- **Paper** → `pudo-paper.qmd`  
-  Project Proposal
+- **Paper** → `paper.qmd`  
+  Project paper
 
 More pages will be added as the project progresses.
 
@@ -23,6 +23,73 @@ More pages will be added as the project progresses.
 - **docs** → `docs/`  
   When the site is built or rendered (quarto render) it will place all the html, css, js etc. code into this folder. This folder is basically the site. It's what the git workflow will pick up (part of the CI/CD) and what github pages will deploy on github. The GitHub Action (Workflow) is responsible for **publishing the rendered Quarto site to GitHub Pages**. It does **not build the site**—it simply takes the already-rendered files in the `docs/` folder and pushes them to the `gh-pages` branch, which GitHub uses to host the website.
 
+
+## Pulling notebook analytics into `paper.qmd`
+
+`paper.qmd` never has numbers pasted into it by hand — every table, figure, and
+headline number is pulled from a plain `assets/` folder that the analysis
+notebook writes to. There is exactly one copy of the notebook, and it stays in
+its natural home, [`pudo-pipeline/notebooks/pudo_analysis.ipynb`](../pudo-pipeline/notebooks/pudo_analysis.ipynb)
+— nothing gets copied or synced into this project.
+
+**How it works:**
+
+1. The notebook's setup cell defines three small helpers — `save_fig`,
+   `save_table`, `save_text` — that write into
+   `PUDO_ASSETS_DIR` (default `../../project-site/assets`, a relative path
+   from the notebook to this project's `assets/` folder):
+   - `save_fig(fig, "fig-risk-matrix")` → `assets/fig-risk-matrix.png`
+   - `save_table(df, "tbl-trend", "caption...")` → a Pandoc pipe-table with a
+     `: caption {#tbl-trend}` line, i.e. `assets/tbl-trend.md`
+   - `save_text("some sentence...", "baseline-headline")` → a plain prose
+     fragment, `assets/baseline-headline.md`
+
+   Any cell that computes a result worth reusing calls one of these right
+   after computing it.
+
+2. `paper.qmd` references those files directly — figures as ordinary Quarto
+   images, tables via `{{< include >}}` (each `{{< include >}}` shortcode must
+   sit alone on its own source line, or Quarto silently fails to expand it):
+
+   ```markdown
+   ![Caption](assets/fig-risk-matrix.png){#fig-risk-matrix}
+
+   {{< include assets/tbl-trend.md >}}
+
+   Over the window the rate was
+   {{< include assets/baseline-headline.md >}}
+   ```
+
+   Quarto numbers and cross-references these like any other figure/table —
+   `@fig-risk-matrix` / `@tbl-trend` in prose renders as "Figure 1" / "Table 3"
+   — instead of showing raw code-console output.
+
+**Workflow when the analysis changes** (from `pudo-pipeline/`):
+
+```bash
+# If data changes run: 
+pudo-build --no-download
+
+# If analysis and or data change re-run the notebook (can be done via an IDE as well):
+jupyter nbconvert --to notebook --execute --inplace notebooks/pudo_analysis.ipynb
+```
+
+That's it — re-executing the notebook overwrites the files in
+`project-site/assets/` directly. Then, from `project-site/`:
+
+Lastly, you can reflect the new changes in the paper by rendering tha site:
+```bash
+quarto render 
+```
+
+Commit the updated `assets/*` files alongside `paper.qmd`
+changes (and the notebook itself, from wherever you ran it) so anyone who
+clones the repo can render the site without re-running the pipeline.
+
+**Viewing the notebook itself:** rather than embedding it into the site (which
+would require a duplicate copy inside this project, `paper.qmd` just links to it on GitHub, e.g.
+`https://github.com/jonathanwilsonami/curbrisk-av/blob/main/pudo-pipeline/notebooks/pudo_analysis.ipynb`,
+which GitHub renders with full code + output in the browser.
 
 ## Contributing to The Project Site and or Paper 
 

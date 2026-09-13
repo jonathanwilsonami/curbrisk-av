@@ -34,16 +34,16 @@ Planned completion by ...
 
 :::: {.content-visible when-format="html"}
 ::: {.callout-note appearance="minimal"}
-**Course:** ME 575  
-**Instructor:** Dr. Missy Cummings  
+**Course:** ME 575
+**Instructor:** Dr. Missy Cummings
 **Institution:** George Mason University
 :::
 ::::
 
 :::: {.content-visible when-format="pdf"}
 ::: {.callout-note appearance="minimal"}
-**Course:** ME 575  
-**Instructor:** Dr. Missy Cummings  
+**Course:** ME 575
+**Instructor:** Dr. Missy Cummings
 **Institution:** George Mason University
 :::
 
@@ -56,8 +56,8 @@ Planned completion by ...
 
 :::: {.content-visible when-format="docx"}
 ::: {.callout-note appearance="minimal"}
-**Course:** ME 575  
-**Instructor:** Dr. Missy Cummings  
+**Course:** ME 575
+**Instructor:** Dr. Missy Cummings
 **Institution:** George Mason University
 :::
 
@@ -82,39 +82,246 @@ _TODO: abstract goes here (write last)._
 
 ## Problem Statement
 
-### The Problem: 
+### The Problem:
+
+Autonomous-vehicle pick-up / drop-off (PUDO) maneuvers — the moments a driverless
+vehicle stops so a rider can get in or out — are a plausible source of curb-space
+conflict, minor collisions, and rider complaints. Whether that risk is growing,
+shrinking, or holding steady as a fleet scales is hard to answer from the public
+record: California Public Utilities Commission (CPUC) AV Deployment reports are
+large, redacted, and change format from quarter to quarter, so nobody has simply
+lined them up into a rate over time.
 
 ### Contribution
 
+- A reproducible pipeline (`pudo-pipeline`) that ingests nine CPUC quarterly
+  report zips for Waymo's driverless deployment — two incompatible file schemas,
+  redaction, and formatting drift included — into five analysis-ready tables.
+- An exposure-adjusted PUDO complaint rate across eight quarters
+  (2024 Q3 – 2026 Q2), on trips — the team's chosen exposure measure, cross-checked
+  against total vehicle miles traveled — with an explicit trend test
+  (Poisson / Negative-Binomial GLM), a distribution-free cross-check
+  (Mann-Kendall), and a Bayesian refit (PyMC/NUTS) that replaces the
+  frequentist p-value with a direct posterior probability the rate is
+  declining.
+- A placement of the PUDO hazard on a probability × impact risk matrix that is
+  computed from the data rather than asserted, with the probability basis left
+  as a visible, toggleable assumption.
 
 ### Scope and Vision
 
+**Scope:** one carrier (Waymo), one state (California), eight quarters, public
+CPUC filings only — no proprietary telemetry. **Vision:** the pipeline's loaders
+are written against the CPUC's public template, not against Waymo specifically,
+so the same numerator/denominator/trend method can be pointed at any other
+CPUC-reporting AV carrier to support carrier-to-carrier comparison rather than a
+single-carrier trend.
 
 ## Technical Challenges
 
+- **Two incompatible numerator schemas.** 2024 reports ship one aggregate,
+  pre-summed row per quarter; 2025Q1 onward ship ride-level microdata (millions
+  of rows) with a Y/N complaint flag. Both had to be reconciled into one
+  numerator, and the level shift between eras cannot be fully ruled out.
+- **Redaction.** Incident timestamps, locations, and the `PUDOTravelLane` flag
+  are blank in every file of every period, ruling out within-quarter timing or
+  spatial analysis.
+- **Silent formatting drift.** Comma-grouped numerics, filenames that change
+  across quarters, and a transposed carrier ID silently nulled the exposure
+  data until caught — the loader now warns loudly instead of nulling quietly.
+- **Non-calendar reporting periods.** The 2024 CPUC reports are not calendar
+  quarters, so "2024 Q3" / "2024 Q4" needed explicit relabeling (`period_label`,
+  `is_calendar_quarter`) to avoid silently comparing the wrong months.
+- **Small, overdispersed counts.** 27–79 complaints per quarter is enough to
+  rule out the normal-approximation trend test, but not enough to ignore
+  quarter-to-quarter noise.
+
 # Related Work
+
+<!-- TODO: we have not identified a published PUDO-specific baseline for
+driverless fleets to compare against; CPUC's own quarterly filings are the
+primary source used here. -->
 
 # Data
 
 ## Data Sources
 
+Public data comes from the CPUC AV Program's quarterly deployment reports
+(cpuc.ca.gov → Licensing → Autonomous Vehicle Programs → Quarterly Reporting) [@cpuc_av_quarterly_reporting].
+Two file families, both filed per reporting period:
+
+- **Incidents-Complaints** — the numerator. PUDO complaint and PUDO-collision
+  counts.
+- **Month-Level** — the denominator. Real `Year`/`Month`, trips, and vehicle
+  miles traveled (VMT). VMT is further split into three "period" columns in
+  the source file, but CPUC's own reference key never defines what those
+  periods mean, so this analysis uses trips as the primary exposure measure
+  and VMT only as an unsplit, whole-quarter cross-check.
+
+Nine raw reporting windows (Jun–Aug 2024, Sep–Nov 2024, a Dec 2024 one-month
+stub, then eight calendar quarters through 2026 Q2) are recombined into eight
+analysis quarters, `2024Q3`–`2026Q2`.
+
+All numbers, tables, and figures in this paper are pulled directly from the
+project's analysis notebook — see
+[`pudo_analysis.ipynb`](https://github.com/jonathanwilsonami/curbrisk-av/blob/main/pudo-pipeline/notebooks/pudo_analysis.ipynb)
+for the full code and every intermediate result.
+
 # Methods
 
 ## Feature Engineering
 
+Every analysis period carries a clean sort/filter key (`period_id`) alongside a
+human-readable label, its exact date window, and a flag for whether that window
+is actually a calendar quarter (`period_label`, `window_start`/`window_end`,
+`is_calendar_quarter` — false only for the two 2024 periods). Two exposure
+denominators are computed per period — trips (one pick-up + one drop-off per
+trip, the most literal PUDO-opportunity count; the primary measure) and total
+VMT (a cross-check) — each paired with a `pudo_per_100k_*` rate, plus a
+PUDO-share-of-all-complaints column for context.
+
 ## Modeling
 
+The complaint rate is modeled as a Poisson process: `complaints ~ t` with
+`offset = log(exposure)`, fit once per exposure denominator. An index-of-
+dispersion test on the raw counts (variance-to-mean ratio, tested against
+$\chi^2_{n-1}$) checks the Poisson equidispersion assumption; when it fails —
+which it does here — the model switches to Negative Binomial (Poisson with a
+Gamma-distributed rate) instead. Mann-Kendall's $\tau$ provides a
+distribution-free cross-check on the trend direction that does not assume any
+particular count distribution. Per-quarter rate uncertainty is reported with
+the **exact** Poisson confidence interval ($\chi^2$ method) rather than the
+normal/Wald approximation, since it stays valid at small and zero counts.
+
+With only eight quarters, the frequentist Negative-Binomial fit's confidence
+interval is built by estimating the dispersion parameter by maximum likelihood
+and then treating it as known — a step that understates uncertainty in a small
+sample. As a check, the same model is refit as a full Bayesian posterior
+(PyMC, NUTS sampler): weakly informative priors on the intercept and slope
+(`Normal(log(pooled rate), 2)` and `Normal(0, 1)`, the latter expressing no
+prior belief about direction) and an `Exponential(1)` prior on the dispersion.
+4 chains × 2000 draws, checked for convergence ($\hat{R}$, divergences) and for
+sensitivity to the prior width on the slope. This gives a full posterior on the
+per-quarter rate change and a direct **P(the rate is declining)**, rather than
+a p-value.
+
 # Evaluation and Results
+
+Per-quarter descriptive statistics for the complaint counts, exposure, and rate
+(@tbl-summary-stats) show why raw counts cannot be compared directly: exposure
+grows nearly 6× across the window.
+
+{{< include assets/tbl-summary-stats.md >}}
+
+Pooling across all eight quarters gives the headline exposure-adjusted rate
+(@tbl-baseline):
+{{< include assets/baseline-headline.md >}}
+
+{{< include assets/tbl-baseline.md >}}
+
+Fitting a trend under both exposure denominators — trips (primary) and VMT
+total (cross-check) — gives the same direction (@tbl-trend):
+{{< include assets/trend-headline.md >}}
+In more detail:
+{{< include assets/trend-primary-headline.md >}}
+
+{{< include assets/tbl-trend.md >}}
+
+That decline is almost entirely the 2024 launch ramp — dropping that quarter
+cuts the slope by roughly two-thirds and the effect is no longer statistically
+significant (see Limitations). From 2025 Q1 onward the rate is essentially flat.
+
+The Bayesian refit (@tbl-bayes-nb) tells a consistent but more cautious story:
+{{< include assets/bayes-trend-headline.md >}}
+
+{{< include assets/tbl-bayes-nb.md >}}
+
+![Bayesian Negative-Binomial posterior on the per-quarter rate change, vs. the
+frequentist point estimate and 95% CI.](assets/fig-bayes-trend.png){#fig-bayes-trend}
+
+The posterior barely shifts across a 4× range of prior width on the slope
+(@tbl-bayes-prior-sensitivity) — the conclusion is driven by the data, not the
+choice of prior:
+
+{{< include assets/tbl-bayes-prior-sensitivity.md >}}
+
+To place the hazard on a risk matrix, the consequence of a PUDO event is read
+off a risk curve — how the event rate falls as severity rises (@fig-risk-curve).
+Nothing severe or fatal was observed at the PUDO level over the window.
+
+![PUDO risk curve: event rate per 100,000 trips at each step up in consequence
+severity (log scale). The unfilled bar is a rule-of-three upper bound on a
+rate with zero observed events, not a measurement.](assets/fig-risk-curve.png){#fig-risk-curve}
+
+Combining that impact reading with a probability of a PUDO complaint occurring
+in a given reporting quarter (@tbl-risk-basis compares three ways of framing
+that probability) places the hazard on the matrix as follows:
+{{< include assets/risk-headline.md >}}
+
+{{< include assets/tbl-risk-basis.md >}}
+
+![PUDO complaint hazard on a probability × impact risk matrix, placed from the
+data under the `per_period` probability basis.](assets/fig-risk-matrix.png){#fig-risk-matrix}
 
 # Discussion
 
 ## Key Concepts and Definitions
 
+- **PUDO** — pick-up / drop-off: the maneuver where a vehicle stops to let a
+  rider board or alight.
+- **Exposure denominator** — the activity measure a complaint count is divided
+  by (trips or VMT) so rates are comparable across quarters of very different
+  fleet size.
+- **Overdispersion** — when a count's variance exceeds its mean beyond what a
+  Poisson process allows, indicating real between-period rate variation.
+- **Risk matrix axes** — *Probability*: how likely the hazard is to occur in a
+  given period; *Impact*: how severe the outcome is when it does.
+- **Credible interval vs. confidence interval** — the Bayesian model's 95%
+  credible interval is a direct probability statement ("there is a 95% chance
+  the true slope is in this range, given the data and the prior"); the
+  frequentist confidence interval is not, which is why the two are reported
+  side by side rather than treated as interchangeable.
+
 ## Assumptions
+
+- PUDO complaints are treated as a Poisson-type count process for modeling
+  purposes; the overdispersion test shows this needs the Negative-Binomial
+  correction rather than being false outright.
+- The Bayesian trend model's priors are weakly informative and were checked
+  for sensitivity (@tbl-bayes-prior-sensitivity) — the posterior does not
+  depend meaningfully on the specific prior width chosen.
+- The risk matrix's "Almost certain" probability reading assumes the relevant
+  question is *will at least one PUDO complaint occur somewhere in the fleet
+  this quarter* (it will), not the odds for any single trip.
+- Complaint counts are assumed complete and consistently defined within each
+  reporting era; the 2024 aggregate table and the 2025+ ride-level microdata
+  are assumed to measure the same underlying thing.
 
 ## Limitations
 
+- Complaints are self-reported by the carrier to its regulator; the rate
+  measures *reported* problems, not necessarily underlying PUDO behavior, and
+  reporting propensity could itself change over time.
+- Waymo expanded to new cities during the window; a rate change may partly
+  reflect new-market composition rather than a change in PUDO behavior.
+- The 2024 and 2025+ numerators come from different source-file schemas, so a
+  level shift at that boundary cannot be fully distinguished from a real trend.
+- Redaction removes all within-quarter timing and location detail, and the
+  travel-lane PUDO signal is unavailable in every file.
+- Single carrier, single state, eight quarters — not yet a cross-carrier or
+  multi-state comparison.
+
 # Conclusion and Future Work
+
+Over 2024 Q3 – 2026 Q2, Waymo's exposure-adjusted PUDO complaint rate fell
+sharply during the 2024 launch ramp and has been roughly flat since — not the
+rising trend a naive raw-count reading would suggest. On a probability × impact
+risk matrix the hazard currently sits in the **Medium**, monitor-and-mitigate
+band: frequent enough to expect every quarter, but low-consequence, with no
+severe or fatal PUDO events observed. These results are still provisional (see
+Limitations); as more CPUC quarters are published the same pipeline can extend
+the trend directly, and applying it to other CPUC-reporting AV carriers would
+turn a single-carrier trend into a cross-carrier comparison.
 
 # References {.unnumbered}
 

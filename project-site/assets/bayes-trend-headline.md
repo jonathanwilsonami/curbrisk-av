@@ -1,0 +1,1 @@
+A Bayesian Negative-Binomial fit (weakly informative priors, PyMC/NUTS, 4 chains x 2000 draws, 0 divergences, max R-hat 1.00) gives a posterior median slope of **-10.9%** per quarter (95% credible interval [-25.2%, +7.6%]) and **P(the rate is declining) = 90%** -- consistent with, but appropriately less certain than, the frequentist p = 0.007.

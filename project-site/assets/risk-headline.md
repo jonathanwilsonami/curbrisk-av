@@ -1,0 +1,1 @@
+Probability: **Almost certain** (P(>=1 PUDO complaint in a quarter) = 1.0000). Impact: **Minor** (the worst consequence tier clearing 0.1/100k trips in the risk curve above). Combined risk level: **Medium**.

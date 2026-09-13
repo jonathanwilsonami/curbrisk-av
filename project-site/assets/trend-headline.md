@@ -1,0 +1,1 @@
+The exposure-adjusted trend is negative under all 2 exposure denominators tested (per-quarter change -13% to -11%; GLM p 0.001-0.007), and Mann-Kendall's tau is negative under all of them as well, though only marginally significant (p 0.40-0.55) given the non-monotone, fell-then-flat shape of the series.
