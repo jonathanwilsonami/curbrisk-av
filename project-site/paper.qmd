@@ -99,11 +99,12 @@ lined them up into a rate over time.
   redaction, and formatting drift included — into five analysis-ready tables.
 - An exposure-adjusted PUDO complaint rate across eight quarters
   (2024 Q3 – 2026 Q2), on trips — the team's chosen exposure measure, cross-checked
-  against total vehicle miles traveled — with an explicit trend test
-  (Poisson / Negative-Binomial GLM), a distribution-free cross-check
-  (Mann-Kendall), and a Bayesian refit (PyMC/NUTS) that replaces the
-  frequentist p-value with a direct posterior probability the rate is
-  declining.
+  against total vehicle miles traveled — with an explicit primary trend test
+  (Negative-Binomial GLM, after Poisson regression was diagnosed as
+  overdispersed), a launch-period sensitivity analysis isolating the 2024
+  deployment ramp, a distribution-free cross-check (Mann-Kendall), and a
+  Bayesian refit (PyMC/NUTS) that reports a direct posterior probability the
+  rate is declining alongside the frequentist p-value.
 - A placement of the PUDO hazard on a probability × impact risk matrix that is
   computed from the data rather than asserted, with the probability basis left
   as a visible, toggleable assumption.
@@ -189,11 +190,23 @@ PUDO-share-of-all-complaints column for context.
 
 ## Modeling
 
-### Exposure-adjusted count model
+PUDO complaints were initially modeled using Poisson regression with the
+logarithm of trip exposure included as an offset. A variance-to-mean
+dispersion diagnostic (@eq-dispersion) showed substantial overdispersion in
+the quarterly counts ($\text{VMR} \approx 5.9$), violating the Poisson
+equidispersion assumption. Temporal trends were therefore estimated using
+**Negative-Binomial regression** with a log link and a trip-exposure offset as
+the primary model. Because only eight quarterly observations were available,
+the same model was additionally estimated in a **Bayesian framework** to more
+fully characterize parameter and dispersion uncertainty. The Poisson fit below
+is retained only as an initial diagnostic baseline — it is never reported as
+the trend result.
 
-The complaint count $Y_t$ in analysis quarter $t = 0, \dots, 7$ is modeled as a
-Poisson process whose rate scales with exposure $E_t$ (trips, or VMT as a
-cross-check), with a log-linear time trend:
+### Poisson regression (initial diagnostic baseline)
+
+The complaint count $Y_t$ in analysis quarter $t = 0, \dots, 7$ is first
+modeled as a Poisson process whose rate scales with exposure $E_t$ (trips, or
+VMT as a cross-check), with a log-linear time trend:
 
 $$
 Y_t \mid \mu_t \sim \text{Poisson}(\mu_t), \qquad
@@ -202,9 +215,11 @@ $$ {#eq-poisson-glm}
 
 $\log E_t$ enters with a fixed coefficient of 1 (an *offset*), so $\beta_1$ is
 the log change in the underlying **rate** $\mu_t / E_t$ per quarter, not in the
-raw count. Every "per-quarter % change" quoted in this paper is:
+raw count. Every incidence rate ratio (IRR) and "per-quarter % change" quoted
+in this paper, for whichever model produced $\beta_1$, is:
 
 $$
+\text{IRR} = e^{\beta_1}, \qquad
 \text{\% change per quarter} = \big(e^{\beta_1} - 1\big) \times 100\%
 $$ {#eq-pct-change}
 
@@ -220,14 +235,16 @@ D = (n-1)\,\text{VMR} \;\sim\; \chi^2_{n-1} \ \text{ under } H_0 : \text{Poisson
 $$ {#eq-dispersion}
 
 $\text{VMR} \approx 1$ is consistent with a pure Poisson process; $\text{VMR}
-\gg 1$ — the result found here — rejects equidispersion in favor of a
-Negative-Binomial model.
+\gg 1$ — the result found here (VMR ≈ 5.9) — rejects equidispersion, so the
+Poisson fit's confidence interval and $p$-value understate uncertainty and are
+not used for inference about the trend.
 
-### Negative-Binomial GLM
+### Negative-Binomial regression (primary trend model)
 
-When @eq-dispersion rejects equidispersion, $Y_t$ is instead modeled as
-Negative-Binomial (the NB2 parametrization used by `statsmodels`), keeping the
-same log-linear mean structure as @eq-poisson-glm:
+Because @eq-dispersion rejects equidispersion, the trend is instead estimated
+with Negative-Binomial regression (the NB2 parametrization used by
+`statsmodels`), keeping the same log-linear mean structure and offset as
+@eq-poisson-glm:
 
 $$
 Y_t \mid \mu_t, \alpha \sim \text{NB}(\mu_t, \alpha), \qquad
@@ -236,14 +253,34 @@ Y_t \mid \mu_t, \alpha \sim \text{NB}(\mu_t, \alpha), \qquad
 $$ {#eq-nb2}
 
 with the dispersion parameter $\alpha$ estimated by maximum likelihood
-alongside $\beta_0, \beta_1$. Larger $\alpha$ means *more* overdispersion
-relative to Poisson under this parametrization.
+alongside $\beta_0, \beta_1$ (larger $\alpha$ means *more* overdispersion
+relative to Poisson under this parametrization). This is the paper's
+**primary frequentist trend model**, reported with $\beta_1$, its standard
+error, 95% confidence interval, $p$-value, and the incidence rate ratio and
+percent change of @eq-pct-change.
+
+### Launch-period sensitivity
+
+2024 Q3–Q4 read as a deployment/launch ramp, with substantially higher
+exposure-adjusted rates than 2025 onward (@fig-trend-fit). Rather than simply
+discarding those quarters, @eq-nb2 is re-estimated — same model form, same
+trip-exposure offset — on two pre-registered windows to test whether they
+drive the full-period result:
+
+- **A. Full period** — 2024 Q3 – 2026 Q2 ($n = 8$; the primary model above)
+- **B. Post-ramp** — 2025 Q1 – 2026 Q2 ($n = 6$; excludes both 2024 quarters)
+
+Comparing $\beta_1$, its confidence interval, and its $p$-value across the two
+windows indicates whether the apparent decline is concentrated in the launch
+period or continues afterward. Given $n = 8$, a simple two-window comparison
+is used rather than a piecewise or launch-indicator model, to avoid
+introducing more parameters than the data can support.
 
 ### Exact (Garwood) Poisson confidence interval
 
-Per-quarter rate uncertainty is reported with the exact Poisson interval
-rather than the normal/Wald approximation, so it stays valid at small or zero
-counts:
+Uncertainty around each **observed** quarter's count is reported with the
+exact Poisson interval rather than the normal/Wald approximation, so it stays
+valid at small or zero counts:
 
 $$
 \text{CI}_{1-\alpha}(k) = \left[\tfrac{1}{2}\chi^2_{\alpha/2}(2k),\;\;
@@ -252,11 +289,16 @@ $$ {#eq-exact-ci}
 
 where $\chi^2_{p}(\nu)$ is the $p$-quantile of a chi-square distribution with
 $\nu$ degrees of freedom, $k$ the observed complaint count, and $E$ the
-exposure (trips) for that quarter.
+exposure (trips) for that quarter. This interval is **descriptive**: it
+summarizes uncertainty around one observed quarter's count/rate. It is
+distinct from — and not a substitute for — @eq-nb2's *inferential* uncertainty
+about the trend across quarters; overlapping exact Poisson intervals between
+quarters do not, by themselves, establish that no trend exists.
 
-### Distribution-free trend check
+### Distribution-free trend check (robustness)
 
-As a check that assumes no particular count distribution, Kendall's $\tau$ is
+As a **robustness check** that assumes no particular count distribution — not
+a replacement for the primary Negative-Binomial fit — Kendall's $\tau$ is
 computed between the quarter index and the per-quarter rate $r_1, \dots, r_n$
 (chronological order):
 
@@ -265,15 +307,17 @@ $$
 $$ {#eq-kendall}
 
 $\tau < 0$ agrees with a declining trend; its $p$-value is reported alongside,
-separately from the GLM's.
+separately from the NB model's.
 
 ### Bayesian Negative-Binomial refit
 
-With only eight quarters, @eq-nb2's confidence interval is built by estimating
-$\alpha$ by maximum likelihood and then treating it as *known* — a step that
-understates uncertainty in a small sample. As a check, the same mean structure
-is refit as a full posterior (PyMC, NUTS sampler) with weakly informative
-priors:
+Because only eight quarterly observations are available, @eq-nb2 is
+additionally estimated in a Bayesian framework to more fully characterize
+parameter *and* dispersion uncertainty — the frequentist fit instead estimates
+$\alpha$ by maximum likelihood and then treats it as *known*, relying on a
+large-sample approximation that a sample this small may not support. The same
+likelihood and exposure structure as @eq-nb2 is refit as a full posterior
+(PyMC, NUTS sampler) with weakly informative priors:
 
 $$
 \begin{aligned}
@@ -291,14 +335,19 @@ deliberately expresses no prior belief about direction. Note @eq-bayes-nb's
 variance term is the **inverse** sense of @eq-nb2's $\alpha$ (larger $\alpha$
 here means *closer* to Poisson) — the two are not numerically comparable. The
 model is sampled with 4 chains × 2000 draws, checked for convergence
-($\hat{R}$, divergence count) and for sensitivity to the prior width on
-$\beta_1$. The quantity of interest is the posterior probability the rate is
-actually declining, estimated directly from the fraction of posterior draws
-below zero rather than from a $p$-value:
+($\hat{R}$, effective sample size, divergence count) and for sensitivity to
+the prior width on $\beta_1$. The quantity of interest is the posterior
+probability the rate is actually declining, estimated directly from the
+fraction of posterior draws below zero rather than from a $p$-value:
 
 $$
 P(\text{declining}) = P(\beta_1 < 0 \mid y_{1:n})
 $$ {#eq-p-declining}
+
+This Bayesian refit is reported as a robustness / small-sample analysis
+alongside the frequentist estimate, not as a claim that it fits the data
+better: no model-comparison criterion (e.g. WAIC/LOO) or posterior-predictive
+check is computed here, so no such claim is made.
 
 ### Risk-matrix probability basis
 
@@ -370,32 +419,70 @@ growing slice of the overall complaint mix; it is consistently the largest
 category tied to a specific vehicle maneuver rather than a general safety or
 "other" catch-all.
 
-Fitting the Negative-Binomial GLM of @eq-nb2 under both exposure denominators
-— trips (primary) and VMT total (cross-check) — and reading the slope off
-@eq-pct-change gives the same direction (@tbl-trend), with Kendall's $\tau$
-(@eq-kendall) agreeing:
-{{< include assets/trend-headline.md >}}
-In more detail:
+### Primary trend: Negative-Binomial regression
+
+The primary trend model — @eq-nb2 fit on trips exposure — gives (@tbl-nb-primary):
 {{< include assets/trend-primary-headline.md >}}
 
-![Observed PUDO complaint rate (per 100k trips, ±95% exact Poisson CI) against
-the fitted trend line and its 95% confidence ribbon, under the primary trips
-denominator.](assets/fig-trend-fit.png){#fig-trend-fit}
+{{< include assets/tbl-nb-primary.md >}}
 
-@fig-trend-fit shows what that decline actually looks like: a sharp drop from
-the 2024 Q3 launch-ramp quarter, then a rate that wanders inside a fairly
-narrow, overlapping band of confidence intervals for the rest of the window —
-a fit that is falling on average, but front-loaded rather than a steady
-quarter-over-quarter slide.
+In plain language: each additional quarter multiplies the expected PUDO
+complaint rate per trip by the incidence rate ratio (IRR) in @tbl-nb-primary,
+holding exposure fixed. The Poisson diagnostic fit (@eq-poisson-glm) is not
+reported here as an inferential result — it assumes equidispersion, which
+@eq-dispersion rejects.
+
+![Observed PUDO complaint rate per 100k trips (exact Poisson 95% CI, a
+descriptive interval around each observed quarter) against the Negative-
+Binomial fitted trend and its own 95% model-based confidence
+band.](assets/fig-trend-fit.png){#fig-trend-fit}
+
+@fig-trend-fit keeps the two kinds of uncertainty visually distinct: the blue
+error bars are @eq-exact-ci, describing each observed quarter's count; the
+red band is the NB regression's uncertainty about the *trend line* itself.
+The two 2024 quarters sit well above the rest of the series and above the
+fitted line's lower band — a sharp drop from a launch-period high, followed by
+a rate that moves within a fairly narrow range for the remaining six quarters.
+The overlapping bars from 2025 onward describe individual quarters and are not
+by themselves evidence for or against a trend; that question is addressed
+directly below.
+
+### Launch-period sensitivity
+
+Restricting the identical NB model to the post-ramp window tests whether the
+full-period decline is concentrated in the 2024 launch quarters
+(@tbl-launch-sensitivity):
+{{< include assets/launch-sensitivity-headline.md >}}
+
+{{< include assets/tbl-launch-sensitivity.md >}}
+
+The post-ramp slope is close to zero and not statistically significant on its
+own, in contrast to the full-period estimate. The apparent decline over the
+full study period appears to be driven substantially by the elevated rates
+observed during the 2024 launch period, while rates from 2025 onward appear
+comparatively stable — consistent with a launch/ramp-period effect rather than
+a continuing decline, though this does not establish causation.
+
+### Robustness checks
+
+Refitting @eq-nb2 under the VMT-total cross-check gives the same direction as
+the primary trips-based fit, and Kendall's $\tau$ (@eq-kendall) — a
+distribution-free check, not an alternative primary model — agrees in sign
+under both denominators (@tbl-trend):
+{{< include assets/trend-headline.md >}}
 
 {{< include assets/tbl-trend.md >}}
 
-That decline is almost entirely the 2024 launch ramp — dropping that quarter
-cuts the slope by roughly two-thirds and the effect is no longer statistically
-significant (see Limitations). From 2025 Q1 onward the rate is essentially flat.
+Mann-Kendall's weaker significance reflects the non-monotone, fell-then-flat
+shape of the series (limited power for a monotone-rank test on $n = 8$), not
+evidence that the trend is absent.
 
-The Bayesian refit (@eq-bayes-nb, @tbl-bayes-nb) tells a consistent but more
-cautious story, reporting @eq-p-declining directly rather than a $p$-value:
+### Bayesian robustness check
+
+The Bayesian refit (@eq-bayes-nb, @tbl-bayes-nb) is reported alongside the
+primary frequentist estimate as a small-sample robustness check — not a claim
+that it fits the data better — and reports @eq-p-declining directly rather
+than a $p$-value:
 {{< include assets/bayes-trend-headline.md >}}
 
 {{< include assets/tbl-bayes-nb.md >}}
@@ -446,12 +533,18 @@ data under the `per_period` probability basis.](assets/fig-risk-matrix.png){#fig
   the true slope is in this range, given the data and the prior"); the
   frequentist confidence interval is not, which is why the two are reported
   side by side rather than treated as interchangeable.
+- **Descriptive vs. inferential interval** — the exact Poisson interval on
+  each observed quarter (@eq-exact-ci) describes uncertainty around that
+  quarter's *count*; the Negative-Binomial regression's confidence interval on
+  $\beta_1$ describes uncertainty about the *trend across* quarters. They
+  answer different questions, so overlapping per-quarter intervals are not
+  evidence that no trend exists.
 
 ## Assumptions
 
-- PUDO complaints are treated as a Poisson-type count process for modeling
-  purposes; the overdispersion test shows this needs the Negative-Binomial
-  correction rather than being false outright.
+- PUDO complaints are initially treated as a Poisson-type count process; the
+  overdispersion test shows this assumption fails, so Negative-Binomial
+  regression — not Poisson — is used for all trend inference.
 - The Bayesian trend model's priors are weakly informative and were checked
   for sensitivity (@tbl-bayes-prior-sensitivity) — the posterior does not
   depend meaningfully on the specific prior width chosen.
@@ -471,6 +564,10 @@ data under the `per_period` probability basis.](assets/fig-risk-matrix.png){#fig
   reflect new-market composition rather than a change in PUDO behavior.
 - The 2024 and 2025+ numerators come from different source-file schemas, so a
   level shift at that boundary cannot be fully distinguished from a real trend.
+- The launch-period sensitivity check further shrinks an already-small sample
+  (post-ramp $n = 6$), which limits its power: a non-significant post-ramp
+  slope is also consistent with a real but smaller decline continuing, not
+  only with no decline at all.
 - Redaction removes all within-quarter timing and location detail, and the
   travel-lane PUDO signal is unavailable in every file.
 - Single carrier, single state, eight quarters — not yet a cross-carrier or
@@ -478,15 +575,23 @@ data under the `per_period` probability basis.](assets/fig-risk-matrix.png){#fig
 
 # Conclusion and Future Work
 
-Over 2024 Q3 – 2026 Q2, Waymo's exposure-adjusted PUDO complaint rate fell
-sharply during the 2024 launch ramp and has been roughly flat since — not the
-rising trend a naive raw-count reading would suggest. On a probability × impact
-risk matrix the hazard currently sits in the **Medium**, monitor-and-mitigate
-band: frequent enough to expect every quarter, but low-consequence, with no
-severe or fatal PUDO events observed. These results are still provisional (see
-Limitations); as more CPUC quarters are published the same pipeline can extend
-the trend directly, and applying it to other CPUC-reporting AV carriers would
-turn a single-carrier trend into a cross-carrier comparison.
+Over 2024 Q3 – 2026 Q2, the primary Negative-Binomial trend model finds
+Waymo's exposure-adjusted PUDO complaint rate falling by 10.7% per quarter
+(95% CI −17.8% to −3.1%, $p = 0.007$) — not the rising trend a naive raw-count
+reading would suggest. The launch-period sensitivity analysis indicates that
+decline is driven substantially by the 2024 launch-ramp quarters: restricted
+to 2025 Q1 – 2026 Q2, the slope is small and not statistically significant.
+The Bayesian refit agrees in direction but is more cautious, putting the
+posterior probability of an actual decline at about 90% rather than treating
+the frequentist $p$-value as certainty. On a probability × impact risk matrix
+the hazard currently sits in the **Medium**, monitor-and-mitigate band:
+frequent enough to expect every quarter, but low-consequence, with no severe
+or fatal PUDO events observed. These results are still provisional (see
+Limitations) — in particular, the post-ramp window's small sample cannot rule
+out a smaller ongoing decline, only a large one; as more CPUC quarters are
+published the same pipeline can extend the trend directly, and applying it to
+other CPUC-reporting AV carriers would turn a single-carrier trend into a
+cross-carrier comparison.
 
 # References {.unnumbered}
 

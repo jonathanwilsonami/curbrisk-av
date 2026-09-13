@@ -1,1 +1,1 @@
-Under the primary trips denominator, the fitted Neg. binomial slope is -10.7% per quarter (95% CI -17.8% to -3.1%, p = 0.007; total change -55% across the window).
+The primary trend model is Negative-Binomial regression (`pudo_complaints ~ t`, `offset = log(trips)`): beta_t = -0.114 (SE 0.042, 95% CI [-0.196, -0.032]), an incidence rate ratio of 0.893 per quarter -- a **-10.7%** change in the PUDO complaint rate per quarter (95% CI -17.8% to -3.1%, p = 0.007; total change -55% across the window).
