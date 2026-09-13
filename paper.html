@@ -440,7 +440,7 @@ D = (n-1)\,\text{VMR} \;\sim\; \chi^2_{n-1} \ \text{ under } H_0 : \text{Poisson
 </section>
 <section id="negative-binomial-regression-primary-trend-model" class="level3" data-number="4.2.3">
 <h3 data-number="4.2.3" class="anchored" data-anchor-id="negative-binomial-regression-primary-trend-model"><span class="header-section-number">4.2.3</span> Negative-Binomial regression (primary trend model)</h3>
-<p>Because <a href="#eq-dispersion" class="quarto-xref">Equation&nbsp;3</a> rejects equidispersion, the trend is instead estimated with Negative-Binomial regression (the NB2 parametrization used by <code>statsmodels</code>), keeping the same log-linear mean structure and offset as <a href="#eq-poisson-glm" class="quarto-xref">Equation&nbsp;1</a>:</p>
+<p>Because <a href="#eq-dispersion" class="quarto-xref">Equation&nbsp;3</a> rejects equidispersion, the trend is instead estimated with Negative-Binomial regression (the NB2 parametrization used by <code>statsmodels</code> <span class="citation" data-cites="statsmodels"><a href="#ref-statsmodels" role="doc-biblioref">[2]</a></span>), keeping the same log-linear mean structure and offset as <a href="#eq-poisson-glm" class="quarto-xref">Equation&nbsp;1</a>:</p>
 <p><span id="eq-nb2"><span class="math display">\[
 Y_t \mid \mu_t, \alpha \sim \text{NB}(\mu_t, \alpha), \qquad
 \text{Var}(Y_t) = \mu_t + \alpha\,\mu_t^2, \qquad
@@ -468,7 +468,7 @@ Y_t \mid \mu_t, \alpha \sim \text{NB}(\mu_t, \alpha), \qquad
 </section>
 <section id="distribution-free-trend-check-robustness" class="level3" data-number="4.2.6">
 <h3 data-number="4.2.6" class="anchored" data-anchor-id="distribution-free-trend-check-robustness"><span class="header-section-number">4.2.6</span> Distribution-free trend check (robustness)</h3>
-<p>As a <strong>robustness check</strong> that assumes no particular count distribution — not a replacement for the primary Negative-Binomial fit — Kendall’s <span class="math inline">\(\tau\)</span> is computed between the quarter index and the per-quarter rate <span class="math inline">\(r_1, \dots, r_n\)</span> (chronological order):</p>
+<p>As a <strong>robustness check</strong> that assumes no particular count distribution — not a replacement for the primary Negative-Binomial fit — the Mann-Kendall trend test <span class="citation" data-cites="mann1945 kendall1975"><a href="#ref-mann1945" role="doc-biblioref">[3]</a>, <a href="#ref-kendall1975" role="doc-biblioref">[4]</a></span> computes Kendall’s <span class="math inline">\(\tau\)</span> between the quarter index and the per-quarter rate <span class="math inline">\(r_1, \dots, r_n\)</span> (chronological order):</p>
 <p><span id="eq-kendall"><span class="math display">\[
 \tau = \frac{2}{n(n-1)} \sum_{i &lt; j} \text{sign}\big(r_j - r_i\big)
 \tag{6}\]</span></span></p>
@@ -476,7 +476,7 @@ Y_t \mid \mu_t, \alpha \sim \text{NB}(\mu_t, \alpha), \qquad
 </section>
 <section id="bayesian-negative-binomial-refit" class="level3" data-number="4.2.7">
 <h3 data-number="4.2.7" class="anchored" data-anchor-id="bayesian-negative-binomial-refit"><span class="header-section-number">4.2.7</span> Bayesian Negative-Binomial refit</h3>
-<p>Because only eight quarterly observations are available, <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> is additionally estimated in a Bayesian framework to more fully characterize parameter <em>and</em> dispersion uncertainty — the frequentist fit instead estimates <span class="math inline">\(\alpha\)</span> by maximum likelihood and then treats it as <em>known</em>, relying on a large-sample approximation that a sample this small may not support. The same likelihood and exposure structure as <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> is refit as a full posterior (PyMC, NUTS sampler) with weakly informative priors:</p>
+<p>Because only eight quarterly observations are available, <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> is additionally estimated in a Bayesian framework to more fully characterize parameter <em>and</em> dispersion uncertainty — the frequentist fit instead estimates <span class="math inline">\(\alpha\)</span> by maximum likelihood and then treats it as <em>known</em>, relying on a large-sample approximation that a sample this small may not support. The same likelihood and exposure structure as <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> is refit as a full posterior (PyMC <span class="citation" data-cites="pymc"><a href="#ref-pymc" role="doc-biblioref">[5]</a></span>, NUTS sampler) with weakly informative priors:</p>
 <p><span id="eq-bayes-nb"><span class="math display">\[
 \begin{aligned}
 \beta_0 &amp;\sim \mathcal{N}\!\big(\log(\bar{r}),\, 2^2\big) \\
@@ -987,7 +987,7 @@ Figure&nbsp;5: PUDO complaint hazard on a probability × impact risk matrix, pla
 </section>
 <section id="spatial-pudo-risk" class="level3" data-number="5.0.5">
 <h3 data-number="5.0.5" class="anchored" data-anchor-id="spatial-pudo-risk"><span class="header-section-number">5.0.5</span> Spatial PUDO risk</h3>
-<p><code>AV_Incidents_Location</code> gives PUDO collision counts aggregated to the Census-tract level, per analysis quarter — the finest location this dataset ever resolves to (individual complaint/collision coordinates and <code>PUDOTravelLane</code> remain redacted, as throughout this paper). All 8 of 8 analysis quarters have usable location data, spanning two disjoint California service areas — the LA Basin and the SF Bay Area/Peninsula corridor — mapped as separate panels below rather than one map with empty Central Valley between them.</p>
+<p><code>AV_Incidents_Location</code> gives PUDO collision counts aggregated to the Census-tract level, per analysis quarter — the finest location this dataset ever resolves to (individual complaint/collision coordinates and <code>PUDOTravelLane</code> remain redacted, as throughout this paper). All 8 of 8 analysis quarters have usable location data, spanning two disjoint California service areas — the LA Basin and the SF Bay Area/Peninsula corridor — mapped as separate panels below rather than one map with empty Central Valley between them. Tract boundaries are U.S. Census Bureau TIGER/Line shapefiles <span class="citation" data-cites="census_tiger_tract"><a href="#ref-census_tiger_tract" role="doc-biblioref">[6]</a></span> — both the 2020- and 2010-vintage boundaries are used, since CPUC/Waymo’s tract identifiers mix tracts from both eras — rendered on an OpenStreetMap basemap <span class="citation" data-cites="openstreetmap"><a href="#ref-openstreetmap" role="doc-biblioref">[7]</a></span>.</p>
 <div id="tbl-spatial-coverage" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-spatial-coverage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -1334,6 +1334,24 @@ Figure&nbsp;7: PUDO collision rate per 100,000 trips by tract, SF Bay Area — 2
 <div id="refs" class="references csl-bib-body" data-entry-spacing="0" role="list">
 <div id="ref-cpuc_av_quarterly_reporting" class="csl-entry" role="listitem">
 <div class="csl-left-margin">[1] </div><div class="csl-right-inline">California Public Utilities Commission, <span>“AV program quarterly reporting.”</span> 2026. Available: <a href="https://www.cpuc.ca.gov/regulatory-services/licensing/transportation-licensing-and-analysis-branch/autonomous-vehicle-programs/quarterly-reporting">https://www.cpuc.ca.gov/regulatory-services/licensing/transportation-licensing-and-analysis-branch/autonomous-vehicle-programs/quarterly-reporting</a></div>
+</div>
+<div id="ref-statsmodels" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline">S. Seabold and J. Perktold, <span>“Statsmodels: Econometric and statistical modeling with <span>Python</span>,”</span> in <em>Proceedings of the 9th python in science conference (SciPy 2010)</em>, 2010, pp. 92–96. doi: <a href="https://doi.org/10.25080/Majora-92bf1922-011">10.25080/Majora-92bf1922-011</a>.</div>
+</div>
+<div id="ref-mann1945" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[3] </div><div class="csl-right-inline">H. B. Mann, <span>“Nonparametric tests against trend,”</span> <em>Econometrica</em>, vol. 13, no. 3, pp. 245–259, 1945, doi: <a href="https://doi.org/10.2307/1907187">10.2307/1907187</a>.</div>
+</div>
+<div id="ref-kendall1975" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[4] </div><div class="csl-right-inline">M. G. Kendall, <em>Rank correlation methods</em>, 4th ed. London: Charles Griffin, 1975.</div>
+</div>
+<div id="ref-pymc" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[5] </div><div class="csl-right-inline">O. Abril-Pla <em>et al.</em>, <span>“<span>PyMC</span>: A modern and comprehensive probabilistic programming framework in <span>Python</span>,”</span> <em>PeerJ Computer Science</em>, vol. 9, p. e1516, 2023, doi: <a href="https://doi.org/10.7717/peerj-cs.1516">10.7717/peerj-cs.1516</a>.</div>
+</div>
+<div id="ref-census_tiger_tract" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[6] </div><div class="csl-right-inline">U.S. Census Bureau, <span>“<span>TIGER/Line</span> shapefiles: Census tracts.”</span> 2024. Available: <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html">https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html</a></div>
+</div>
+<div id="ref-openstreetmap" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[7] </div><div class="csl-right-inline">OpenStreetMap contributors, <span>“<span>OpenStreetMap</span>.”</span> 2026. Available: <a href="https://www.openstreetmap.org">https://www.openstreetmap.org</a></div>
 </div>
 </div>
 
