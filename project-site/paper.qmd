@@ -162,6 +162,13 @@ Nine raw reporting windows (Jun–Aug 2024, Sep–Nov 2024, a Dec 2024 one-month
 stub, then eight calendar quarters through 2026 Q2) are recombined into eight
 analysis quarters, `2024Q3`–`2026Q2`.
 
+The pipeline's two upstream file families reduce to a single hand-off table,
+`final_pudo_summary` — one row per analysis quarter, carrying only the
+complaint numerator and the trips denominator (@tbl-final-data). This is the
+dataset the rest of the paper's analysis runs on:
+
+{{< include assets/tbl-final-data.md >}}
+
 All numbers, tables, and figures in this paper are pulled directly from the
 project's analysis notebook — see
 [`pudo_analysis.ipynb`](https://github.com/jonathanwilsonami/curbrisk-av/blob/main/pudo-pipeline/notebooks/pudo_analysis.ipynb)
@@ -182,28 +189,151 @@ PUDO-share-of-all-complaints column for context.
 
 ## Modeling
 
-The complaint rate is modeled as a Poisson process: `complaints ~ t` with
-`offset = log(exposure)`, fit once per exposure denominator. An index-of-
-dispersion test on the raw counts (variance-to-mean ratio, tested against
-$\chi^2_{n-1}$) checks the Poisson equidispersion assumption; when it fails —
-which it does here — the model switches to Negative Binomial (Poisson with a
-Gamma-distributed rate) instead. Mann-Kendall's $\tau$ provides a
-distribution-free cross-check on the trend direction that does not assume any
-particular count distribution. Per-quarter rate uncertainty is reported with
-the **exact** Poisson confidence interval ($\chi^2$ method) rather than the
-normal/Wald approximation, since it stays valid at small and zero counts.
+### Exposure-adjusted count model
 
-With only eight quarters, the frequentist Negative-Binomial fit's confidence
-interval is built by estimating the dispersion parameter by maximum likelihood
-and then treating it as known — a step that understates uncertainty in a small
-sample. As a check, the same model is refit as a full Bayesian posterior
-(PyMC, NUTS sampler): weakly informative priors on the intercept and slope
-(`Normal(log(pooled rate), 2)` and `Normal(0, 1)`, the latter expressing no
-prior belief about direction) and an `Exponential(1)` prior on the dispersion.
-4 chains × 2000 draws, checked for convergence ($\hat{R}$, divergences) and for
-sensitivity to the prior width on the slope. This gives a full posterior on the
-per-quarter rate change and a direct **P(the rate is declining)**, rather than
-a p-value.
+The complaint count $Y_t$ in analysis quarter $t = 0, \dots, 7$ is modeled as a
+Poisson process whose rate scales with exposure $E_t$ (trips, or VMT as a
+cross-check), with a log-linear time trend:
+
+$$
+Y_t \mid \mu_t \sim \text{Poisson}(\mu_t), \qquad
+\log \mu_t = \log E_t + \beta_0 + \beta_1 t
+$$ {#eq-poisson-glm}
+
+$\log E_t$ enters with a fixed coefficient of 1 (an *offset*), so $\beta_1$ is
+the log change in the underlying **rate** $\mu_t / E_t$ per quarter, not in the
+raw count. Every "per-quarter % change" quoted in this paper is:
+
+$$
+\text{\% change per quarter} = \big(e^{\beta_1} - 1\big) \times 100\%
+$$ {#eq-pct-change}
+
+### Overdispersion check
+
+@eq-poisson-glm's defining assumption is $\text{Var}(Y_t) = \mathbb{E}[Y_t]$.
+This is checked with the index of dispersion (variance-to-mean ratio, VMR) on
+the raw complaint counts across the $n = 8$ quarters:
+
+$$
+\text{VMR} = \frac{s^2}{\bar{y}}, \qquad
+D = (n-1)\,\text{VMR} \;\sim\; \chi^2_{n-1} \ \text{ under } H_0 : \text{Poisson}
+$$ {#eq-dispersion}
+
+$\text{VMR} \approx 1$ is consistent with a pure Poisson process; $\text{VMR}
+\gg 1$ — the result found here — rejects equidispersion in favor of a
+Negative-Binomial model.
+
+### Negative-Binomial GLM
+
+When @eq-dispersion rejects equidispersion, $Y_t$ is instead modeled as
+Negative-Binomial (the NB2 parametrization used by `statsmodels`), keeping the
+same log-linear mean structure as @eq-poisson-glm:
+
+$$
+Y_t \mid \mu_t, \alpha \sim \text{NB}(\mu_t, \alpha), \qquad
+\text{Var}(Y_t) = \mu_t + \alpha\,\mu_t^2, \qquad
+\log \mu_t = \log E_t + \beta_0 + \beta_1 t
+$$ {#eq-nb2}
+
+with the dispersion parameter $\alpha$ estimated by maximum likelihood
+alongside $\beta_0, \beta_1$. Larger $\alpha$ means *more* overdispersion
+relative to Poisson under this parametrization.
+
+### Exact (Garwood) Poisson confidence interval
+
+Per-quarter rate uncertainty is reported with the exact Poisson interval
+rather than the normal/Wald approximation, so it stays valid at small or zero
+counts:
+
+$$
+\text{CI}_{1-\alpha}(k) = \left[\tfrac{1}{2}\chi^2_{\alpha/2}(2k),\;\;
+\tfrac{1}{2}\chi^2_{1-\alpha/2}(2k+2)\right] \Big/ E \;\times\; 10^5
+$$ {#eq-exact-ci}
+
+where $\chi^2_{p}(\nu)$ is the $p$-quantile of a chi-square distribution with
+$\nu$ degrees of freedom, $k$ the observed complaint count, and $E$ the
+exposure (trips) for that quarter.
+
+### Distribution-free trend check
+
+As a check that assumes no particular count distribution, Kendall's $\tau$ is
+computed between the quarter index and the per-quarter rate $r_1, \dots, r_n$
+(chronological order):
+
+$$
+\tau = \frac{2}{n(n-1)} \sum_{i < j} \text{sign}\big(r_j - r_i\big)
+$$ {#eq-kendall}
+
+$\tau < 0$ agrees with a declining trend; its $p$-value is reported alongside,
+separately from the GLM's.
+
+### Bayesian Negative-Binomial refit
+
+With only eight quarters, @eq-nb2's confidence interval is built by estimating
+$\alpha$ by maximum likelihood and then treating it as *known* — a step that
+understates uncertainty in a small sample. As a check, the same mean structure
+is refit as a full posterior (PyMC, NUTS sampler) with weakly informative
+priors:
+
+$$
+\begin{aligned}
+\beta_0 &\sim \mathcal{N}\!\big(\log(\bar{r}),\, 2^2\big) \\
+\beta_1 &\sim \mathcal{N}(0,\, 1^2) \\
+\alpha &\sim \text{Exponential}(1) \\
+\mu_t &= E_t \exp(\beta_0 + \beta_1 t) \\
+Y_t \mid \mu_t, \alpha &\sim \text{NB}(\mu_t, \alpha), \qquad
+\text{Var}(Y_t) = \mu_t + \mu_t^2/\alpha
+\end{aligned}
+$$ {#eq-bayes-nb}
+
+where $\bar{r}$ is the pooled baseline rate and $\beta_1 \sim \mathcal{N}(0,1)$
+deliberately expresses no prior belief about direction. Note @eq-bayes-nb's
+variance term is the **inverse** sense of @eq-nb2's $\alpha$ (larger $\alpha$
+here means *closer* to Poisson) — the two are not numerically comparable. The
+model is sampled with 4 chains × 2000 draws, checked for convergence
+($\hat{R}$, divergence count) and for sensitivity to the prior width on
+$\beta_1$. The quantity of interest is the posterior probability the rate is
+actually declining, estimated directly from the fraction of posterior draws
+below zero rather than from a $p$-value:
+
+$$
+P(\text{declining}) = P(\beta_1 < 0 \mid y_{1:n})
+$$ {#eq-p-declining}
+
+### Risk-matrix probability basis
+
+To place the PUDO hazard on a probability × impact risk matrix, three ways of
+expressing "how likely is a PUDO event" are compared, holding the impact
+reading fixed. Let $k = \sum_t y_t$ be total complaints and
+$N = \sum_t E_t$ total trips over the window.
+
+**Per-period** — the probability of at least one complaint in a reporting
+quarter, treating the mean quarterly count $\bar\lambda = k/n$ as a Poisson
+rate:
+
+$$
+p_{\text{per-period}} = 1 - e^{-\bar\lambda}
+$$ {#eq-prob-period}
+
+**Per-trip** — the raw empirical per-trip probability:
+
+$$
+p_{\text{per-trip}} = \frac{k}{N}
+$$ {#eq-prob-trip}
+
+**Bayesian** — a Beta-Binomial posterior on the per-trip rate (Jeffreys-style
+$\text{Beta}(0.5, 0.5)$ prior), converted to a predictive probability of at
+least one complaint in a future quarter of size $E_{\text{next}}$:
+
+$$
+\begin{aligned}
+\text{rate} \mid k, N &\sim \text{Beta}(0.5 + k,\ 0.5 + N - k) \\
+p_{\text{bayesian}} &= 1 - e^{-\widehat{\text{rate}}\; \cdot\; E_{\text{next}}}
+\end{aligned}
+$$ {#eq-prob-bayes}
+
+using the posterior mean $\widehat{\text{rate}}$ and the most recent quarter's
+trip volume as $E_{\text{next}}$.
 
 # Evaluation and Results
 
@@ -213,17 +343,36 @@ grows nearly 6× across the window.
 
 {{< include assets/tbl-summary-stats.md >}}
 
+The index-of-dispersion test (@eq-dispersion) on these counts gives
+$\text{VMR} \approx 5$ ($D \approx 41.5$ against $\chi^2_7$, $p < 0.001$),
+rejecting Poisson equidispersion — the reason every trend fit below uses the
+Negative-Binomial model of @eq-nb2 rather than @eq-poisson-glm directly. The
+per-quarter rates in @tbl-baseline and throughout use the exact interval of
+@eq-exact-ci, not a normal approximation.
+
 Pooling across all eight quarters gives the headline exposure-adjusted rate
 (@tbl-baseline):
 {{< include assets/baseline-headline.md >}}
 
 {{< include assets/tbl-baseline.md >}}
 
-Fitting a trend under both exposure denominators — trips (primary) and VMT
-total (cross-check) — gives the same direction (@tbl-trend):
+Fitting the Negative-Binomial GLM of @eq-nb2 under both exposure denominators
+— trips (primary) and VMT total (cross-check) — and reading the slope off
+@eq-pct-change gives the same direction (@tbl-trend), with Kendall's $\tau$
+(@eq-kendall) agreeing:
 {{< include assets/trend-headline.md >}}
 In more detail:
 {{< include assets/trend-primary-headline.md >}}
+
+![Observed PUDO complaint rate (per 100k trips, ±95% exact Poisson CI) against
+the fitted trend line and its 95% confidence ribbon, under the primary trips
+denominator.](assets/fig-trend-fit.png){#fig-trend-fit}
+
+@fig-trend-fit shows what that decline actually looks like: a sharp drop from
+the 2024 Q3 launch-ramp quarter, then a rate that wanders inside a fairly
+narrow, overlapping band of confidence intervals for the rest of the window —
+a fit that is falling on average, but front-loaded rather than a steady
+quarter-over-quarter slide.
 
 {{< include assets/tbl-trend.md >}}
 
@@ -231,7 +380,8 @@ That decline is almost entirely the 2024 launch ramp — dropping that quarter
 cuts the slope by roughly two-thirds and the effect is no longer statistically
 significant (see Limitations). From 2025 Q1 onward the rate is essentially flat.
 
-The Bayesian refit (@tbl-bayes-nb) tells a consistent but more cautious story:
+The Bayesian refit (@eq-bayes-nb, @tbl-bayes-nb) tells a consistent but more
+cautious story, reporting @eq-p-declining directly rather than a $p$-value:
 {{< include assets/bayes-trend-headline.md >}}
 
 {{< include assets/tbl-bayes-nb.md >}}
@@ -254,8 +404,9 @@ severity (log scale). The unfilled bar is a rule-of-three upper bound on a
 rate with zero observed events, not a measurement.](assets/fig-risk-curve.png){#fig-risk-curve}
 
 Combining that impact reading with a probability of a PUDO complaint occurring
-in a given reporting quarter (@tbl-risk-basis compares three ways of framing
-that probability) places the hazard on the matrix as follows:
+in a given reporting quarter — @tbl-risk-basis compares the three formulas of
+@eq-prob-period, @eq-prob-trip, and @eq-prob-bayes — places the hazard on the
+matrix as follows:
 {{< include assets/risk-headline.md >}}
 
 {{< include assets/tbl-risk-basis.md >}}

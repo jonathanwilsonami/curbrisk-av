@@ -193,7 +193,16 @@ window.Quarto = {
   <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods"><span class="header-section-number">4</span> Methods</a>
   <ul class="collapse">
   <li><a href="#feature-engineering" id="toc-feature-engineering" class="nav-link" data-scroll-target="#feature-engineering"><span class="header-section-number">4.1</span> Feature Engineering</a></li>
-  <li><a href="#modeling" id="toc-modeling" class="nav-link" data-scroll-target="#modeling"><span class="header-section-number">4.2</span> Modeling</a></li>
+  <li><a href="#modeling" id="toc-modeling" class="nav-link" data-scroll-target="#modeling"><span class="header-section-number">4.2</span> Modeling</a>
+  <ul class="collapse">
+  <li><a href="#exposure-adjusted-count-model" id="toc-exposure-adjusted-count-model" class="nav-link" data-scroll-target="#exposure-adjusted-count-model"><span class="header-section-number">4.2.1</span> Exposure-adjusted count model</a></li>
+  <li><a href="#overdispersion-check" id="toc-overdispersion-check" class="nav-link" data-scroll-target="#overdispersion-check"><span class="header-section-number">4.2.2</span> Overdispersion check</a></li>
+  <li><a href="#negative-binomial-glm" id="toc-negative-binomial-glm" class="nav-link" data-scroll-target="#negative-binomial-glm"><span class="header-section-number">4.2.3</span> Negative-Binomial GLM</a></li>
+  <li><a href="#exact-garwood-poisson-confidence-interval" id="toc-exact-garwood-poisson-confidence-interval" class="nav-link" data-scroll-target="#exact-garwood-poisson-confidence-interval"><span class="header-section-number">4.2.4</span> Exact (Garwood) Poisson confidence interval</a></li>
+  <li><a href="#distribution-free-trend-check" id="toc-distribution-free-trend-check" class="nav-link" data-scroll-target="#distribution-free-trend-check"><span class="header-section-number">4.2.5</span> Distribution-free trend check</a></li>
+  <li><a href="#bayesian-negative-binomial-refit" id="toc-bayesian-negative-binomial-refit" class="nav-link" data-scroll-target="#bayesian-negative-binomial-refit"><span class="header-section-number">4.2.6</span> Bayesian Negative-Binomial refit</a></li>
+  <li><a href="#risk-matrix-probability-basis" id="toc-risk-matrix-probability-basis" class="nav-link" data-scroll-target="#risk-matrix-probability-basis"><span class="header-section-number">4.2.7</span> Risk-matrix probability basis</a></li>
+  </ul></li>
   </ul></li>
   <li><a href="#evaluation-and-results" id="toc-evaluation-and-results" class="nav-link" data-scroll-target="#evaluation-and-results"><span class="header-section-number">5</span> Evaluation and Results</a></li>
   <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion"><span class="header-section-number">6</span> Discussion</a>
@@ -325,6 +334,67 @@ primary source used here. -->
 <li><strong>Month-Level</strong> — the denominator. Real <code>Year</code>/<code>Month</code>, trips, and vehicle miles traveled (VMT). VMT is further split into three “period” columns in the source file, but CPUC’s own reference key never defines what those periods mean, so this analysis uses trips as the primary exposure measure and VMT only as an unsplit, whole-quarter cross-check.</li>
 </ul>
 <p>Nine raw reporting windows (Jun–Aug 2024, Sep–Nov 2024, a Dec 2024 one-month stub, then eight calendar quarters through 2026 Q2) are recombined into eight analysis quarters, <code>2024Q3</code>–<code>2026Q2</code>.</p>
+<p>The pipeline’s two upstream file families reduce to a single hand-off table, <code>final_pudo_summary</code> — one row per analysis quarter, carrying only the complaint numerator and the trips denominator (<a href="#tbl-final-data" class="quarto-xref">Table&nbsp;1</a>). This is the dataset the rest of the paper’s analysis runs on:</p>
+<div id="tbl-final-data" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-final-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: The final hand-off dataset (<code>final_pudo_summary</code>): PUDO complaint counts and trip exposure by analysis quarter, 2024 Q3 - 2026 Q2 (n = 8).
+</figcaption>
+<div aria-describedby="tbl-final-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>period</th>
+<th>trips</th>
+<th>PUDO complaints</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>2024 Q3 (Jun-Aug)</td>
+<td>751,844</td>
+<td>41</td>
+</tr>
+<tr class="even">
+<td>2024 Q4 (Sep-Dec)</td>
+<td>1,852,614</td>
+<td>51</td>
+</tr>
+<tr class="odd">
+<td>2025 Q1</td>
+<td>1,818,206</td>
+<td>27</td>
+</tr>
+<tr class="even">
+<td>2025 Q2</td>
+<td>2,234,912</td>
+<td>42</td>
+</tr>
+<tr class="odd">
+<td>2025 Q3</td>
+<td>2,676,001</td>
+<td>42</td>
+</tr>
+<tr class="even">
+<td>2025 Q4</td>
+<td>3,748,532</td>
+<td>66</td>
+</tr>
+<tr class="odd">
+<td>2026 Q1</td>
+<td>3,905,934</td>
+<td>69</td>
+</tr>
+<tr class="even">
+<td>2026 Q2</td>
+<td>4,220,075</td>
+<td>79</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
 <p>All numbers, tables, and figures in this paper are pulled directly from the project’s analysis notebook — see <a href="https://github.com/jonathanwilsonami/curbrisk-av/blob/main/pudo-pipeline/notebooks/pudo_analysis.ipynb"><code>pudo_analysis.ipynb</code></a> for the full code and every intermediate result.</p>
 </section>
 </section>
@@ -336,17 +406,102 @@ primary source used here. -->
 </section>
 <section id="modeling" class="level2" data-number="4.2">
 <h2 data-number="4.2" class="anchored" data-anchor-id="modeling"><span class="header-section-number">4.2</span> Modeling</h2>
-<p>The complaint rate is modeled as a Poisson process: <code>complaints ~ t</code> with <code>offset = log(exposure)</code>, fit once per exposure denominator. An index-of- dispersion test on the raw counts (variance-to-mean ratio, tested against <span class="math inline">\(\chi^2_{n-1}\)</span>) checks the Poisson equidispersion assumption; when it fails — which it does here — the model switches to Negative Binomial (Poisson with a Gamma-distributed rate) instead. Mann-Kendall’s <span class="math inline">\(\tau\)</span> provides a distribution-free cross-check on the trend direction that does not assume any particular count distribution. Per-quarter rate uncertainty is reported with the <strong>exact</strong> Poisson confidence interval (<span class="math inline">\(\chi^2\)</span> method) rather than the normal/Wald approximation, since it stays valid at small and zero counts.</p>
-<p>With only eight quarters, the frequentist Negative-Binomial fit’s confidence interval is built by estimating the dispersion parameter by maximum likelihood and then treating it as known — a step that understates uncertainty in a small sample. As a check, the same model is refit as a full Bayesian posterior (PyMC, NUTS sampler): weakly informative priors on the intercept and slope (<code>Normal(log(pooled rate), 2)</code> and <code>Normal(0, 1)</code>, the latter expressing no prior belief about direction) and an <code>Exponential(1)</code> prior on the dispersion. 4 chains × 2000 draws, checked for convergence (<span class="math inline">\(\hat{R}\)</span>, divergences) and for sensitivity to the prior width on the slope. This gives a full posterior on the per-quarter rate change and a direct <strong>P(the rate is declining)</strong>, rather than a p-value.</p>
+<section id="exposure-adjusted-count-model" class="level3" data-number="4.2.1">
+<h3 data-number="4.2.1" class="anchored" data-anchor-id="exposure-adjusted-count-model"><span class="header-section-number">4.2.1</span> Exposure-adjusted count model</h3>
+<p>The complaint count <span class="math inline">\(Y_t\)</span> in analysis quarter <span class="math inline">\(t = 0, \dots, 7\)</span> is modeled as a Poisson process whose rate scales with exposure <span class="math inline">\(E_t\)</span> (trips, or VMT as a cross-check), with a log-linear time trend:</p>
+<p><span id="eq-poisson-glm"><span class="math display">\[
+Y_t \mid \mu_t \sim \text{Poisson}(\mu_t), \qquad
+\log \mu_t = \log E_t + \beta_0 + \beta_1 t
+\tag{1}\]</span></span></p>
+<p><span class="math inline">\(\log E_t\)</span> enters with a fixed coefficient of 1 (an <em>offset</em>), so <span class="math inline">\(\beta_1\)</span> is the log change in the underlying <strong>rate</strong> <span class="math inline">\(\mu_t / E_t\)</span> per quarter, not in the raw count. Every “per-quarter % change” quoted in this paper is:</p>
+<p><span id="eq-pct-change"><span class="math display">\[
+\text{\% change per quarter} = \big(e^{\beta_1} - 1\big) \times 100\%
+\tag{2}\]</span></span></p>
+</section>
+<section id="overdispersion-check" class="level3" data-number="4.2.2">
+<h3 data-number="4.2.2" class="anchored" data-anchor-id="overdispersion-check"><span class="header-section-number">4.2.2</span> Overdispersion check</h3>
+<p><a href="#eq-poisson-glm" class="quarto-xref">Equation&nbsp;1</a>’s defining assumption is <span class="math inline">\(\text{Var}(Y_t) = \mathbb{E}[Y_t]\)</span>. This is checked with the index of dispersion (variance-to-mean ratio, VMR) on the raw complaint counts across the <span class="math inline">\(n = 8\)</span> quarters:</p>
+<p><span id="eq-dispersion"><span class="math display">\[
+\text{VMR} = \frac{s^2}{\bar{y}}, \qquad
+D = (n-1)\,\text{VMR} \;\sim\; \chi^2_{n-1} \ \text{ under } H_0 : \text{Poisson}
+\tag{3}\]</span></span></p>
+<p><span class="math inline">\(\text{VMR} \approx 1\)</span> is consistent with a pure Poisson process; <span class="math inline">\(\text{VMR}
+\gg 1\)</span> — the result found here — rejects equidispersion in favor of a Negative-Binomial model.</p>
+</section>
+<section id="negative-binomial-glm" class="level3" data-number="4.2.3">
+<h3 data-number="4.2.3" class="anchored" data-anchor-id="negative-binomial-glm"><span class="header-section-number">4.2.3</span> Negative-Binomial GLM</h3>
+<p>When <a href="#eq-dispersion" class="quarto-xref">Equation&nbsp;3</a> rejects equidispersion, <span class="math inline">\(Y_t\)</span> is instead modeled as Negative-Binomial (the NB2 parametrization used by <code>statsmodels</code>), keeping the same log-linear mean structure as <a href="#eq-poisson-glm" class="quarto-xref">Equation&nbsp;1</a>:</p>
+<p><span id="eq-nb2"><span class="math display">\[
+Y_t \mid \mu_t, \alpha \sim \text{NB}(\mu_t, \alpha), \qquad
+\text{Var}(Y_t) = \mu_t + \alpha\,\mu_t^2, \qquad
+\log \mu_t = \log E_t + \beta_0 + \beta_1 t
+\tag{4}\]</span></span></p>
+<p>with the dispersion parameter <span class="math inline">\(\alpha\)</span> estimated by maximum likelihood alongside <span class="math inline">\(\beta_0, \beta_1\)</span>. Larger <span class="math inline">\(\alpha\)</span> means <em>more</em> overdispersion relative to Poisson under this parametrization.</p>
+</section>
+<section id="exact-garwood-poisson-confidence-interval" class="level3" data-number="4.2.4">
+<h3 data-number="4.2.4" class="anchored" data-anchor-id="exact-garwood-poisson-confidence-interval"><span class="header-section-number">4.2.4</span> Exact (Garwood) Poisson confidence interval</h3>
+<p>Per-quarter rate uncertainty is reported with the exact Poisson interval rather than the normal/Wald approximation, so it stays valid at small or zero counts:</p>
+<p><span id="eq-exact-ci"><span class="math display">\[
+\text{CI}_{1-\alpha}(k) = \left[\tfrac{1}{2}\chi^2_{\alpha/2}(2k),\;\;
+\tfrac{1}{2}\chi^2_{1-\alpha/2}(2k+2)\right] \Big/ E \;\times\; 10^5
+\tag{5}\]</span></span></p>
+<p>where <span class="math inline">\(\chi^2_{p}(\nu)\)</span> is the <span class="math inline">\(p\)</span>-quantile of a chi-square distribution with <span class="math inline">\(\nu\)</span> degrees of freedom, <span class="math inline">\(k\)</span> the observed complaint count, and <span class="math inline">\(E\)</span> the exposure (trips) for that quarter.</p>
+</section>
+<section id="distribution-free-trend-check" class="level3" data-number="4.2.5">
+<h3 data-number="4.2.5" class="anchored" data-anchor-id="distribution-free-trend-check"><span class="header-section-number">4.2.5</span> Distribution-free trend check</h3>
+<p>As a check that assumes no particular count distribution, Kendall’s <span class="math inline">\(\tau\)</span> is computed between the quarter index and the per-quarter rate <span class="math inline">\(r_1, \dots, r_n\)</span> (chronological order):</p>
+<p><span id="eq-kendall"><span class="math display">\[
+\tau = \frac{2}{n(n-1)} \sum_{i &lt; j} \text{sign}\big(r_j - r_i\big)
+\tag{6}\]</span></span></p>
+<p><span class="math inline">\(\tau &lt; 0\)</span> agrees with a declining trend; its <span class="math inline">\(p\)</span>-value is reported alongside, separately from the GLM’s.</p>
+</section>
+<section id="bayesian-negative-binomial-refit" class="level3" data-number="4.2.6">
+<h3 data-number="4.2.6" class="anchored" data-anchor-id="bayesian-negative-binomial-refit"><span class="header-section-number">4.2.6</span> Bayesian Negative-Binomial refit</h3>
+<p>With only eight quarters, <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a>’s confidence interval is built by estimating <span class="math inline">\(\alpha\)</span> by maximum likelihood and then treating it as <em>known</em> — a step that understates uncertainty in a small sample. As a check, the same mean structure is refit as a full posterior (PyMC, NUTS sampler) with weakly informative priors:</p>
+<p><span id="eq-bayes-nb"><span class="math display">\[
+\begin{aligned}
+\beta_0 &amp;\sim \mathcal{N}\!\big(\log(\bar{r}),\, 2^2\big) \\
+\beta_1 &amp;\sim \mathcal{N}(0,\, 1^2) \\
+\alpha &amp;\sim \text{Exponential}(1) \\
+\mu_t &amp;= E_t \exp(\beta_0 + \beta_1 t) \\
+Y_t \mid \mu_t, \alpha &amp;\sim \text{NB}(\mu_t, \alpha), \qquad
+\text{Var}(Y_t) = \mu_t + \mu_t^2/\alpha
+\end{aligned}
+\tag{7}\]</span></span></p>
+<p>where <span class="math inline">\(\bar{r}\)</span> is the pooled baseline rate and <span class="math inline">\(\beta_1 \sim \mathcal{N}(0,1)\)</span> deliberately expresses no prior belief about direction. Note <a href="#eq-bayes-nb" class="quarto-xref">Equation&nbsp;7</a>’s variance term is the <strong>inverse</strong> sense of <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a>’s <span class="math inline">\(\alpha\)</span> (larger <span class="math inline">\(\alpha\)</span> here means <em>closer</em> to Poisson) — the two are not numerically comparable. The model is sampled with 4 chains × 2000 draws, checked for convergence (<span class="math inline">\(\hat{R}\)</span>, divergence count) and for sensitivity to the prior width on <span class="math inline">\(\beta_1\)</span>. The quantity of interest is the posterior probability the rate is actually declining, estimated directly from the fraction of posterior draws below zero rather than from a <span class="math inline">\(p\)</span>-value:</p>
+<p><span id="eq-p-declining"><span class="math display">\[
+P(\text{declining}) = P(\beta_1 &lt; 0 \mid y_{1:n})
+\tag{8}\]</span></span></p>
+</section>
+<section id="risk-matrix-probability-basis" class="level3" data-number="4.2.7">
+<h3 data-number="4.2.7" class="anchored" data-anchor-id="risk-matrix-probability-basis"><span class="header-section-number">4.2.7</span> Risk-matrix probability basis</h3>
+<p>To place the PUDO hazard on a probability × impact risk matrix, three ways of expressing “how likely is a PUDO event” are compared, holding the impact reading fixed. Let <span class="math inline">\(k = \sum_t y_t\)</span> be total complaints and <span class="math inline">\(N = \sum_t E_t\)</span> total trips over the window.</p>
+<p><strong>Per-period</strong> — the probability of at least one complaint in a reporting quarter, treating the mean quarterly count <span class="math inline">\(\bar\lambda = k/n\)</span> as a Poisson rate:</p>
+<p><span id="eq-prob-period"><span class="math display">\[
+p_{\text{per-period}} = 1 - e^{-\bar\lambda}
+\tag{9}\]</span></span></p>
+<p><strong>Per-trip</strong> — the raw empirical per-trip probability:</p>
+<p><span id="eq-prob-trip"><span class="math display">\[
+p_{\text{per-trip}} = \frac{k}{N}
+\tag{10}\]</span></span></p>
+<p><strong>Bayesian</strong> — a Beta-Binomial posterior on the per-trip rate (Jeffreys-style <span class="math inline">\(\text{Beta}(0.5, 0.5)\)</span> prior), converted to a predictive probability of at least one complaint in a future quarter of size <span class="math inline">\(E_{\text{next}}\)</span>:</p>
+<p><span id="eq-prob-bayes"><span class="math display">\[
+\begin{aligned}
+\text{rate} \mid k, N &amp;\sim \text{Beta}(0.5 + k,\ 0.5 + N - k) \\
+p_{\text{bayesian}} &amp;= 1 - e^{-\widehat{\text{rate}}\; \cdot\; E_{\text{next}}}
+\end{aligned}
+\tag{11}\]</span></span></p>
+<p>using the posterior mean <span class="math inline">\(\widehat{\text{rate}}\)</span> and the most recent quarter’s trip volume as <span class="math inline">\(E_{\text{next}}\)</span>.</p>
+</section>
 </section>
 </section>
 <section id="evaluation-and-results" class="level1" data-number="5">
 <h1 data-number="5"><span class="header-section-number">5</span> Evaluation and Results</h1>
-<p>Per-quarter descriptive statistics for the complaint counts, exposure, and rate (<a href="#tbl-summary-stats" class="quarto-xref">Table&nbsp;1</a>) show why raw counts cannot be compared directly: exposure grows nearly 6× across the window.</p>
+<p>Per-quarter descriptive statistics for the complaint counts, exposure, and rate (<a href="#tbl-summary-stats" class="quarto-xref">Table&nbsp;2</a>) show why raw counts cannot be compared directly: exposure grows nearly 6× across the window.</p>
 <div id="tbl-summary-stats" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-summary-stats-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;1: Per-quarter descriptive statistics for PUDO complaints, trips, and the PUDO-per-100k-trips rate, 2024 Q3 - 2026 Q2 (n = 8).
+Table&nbsp;2: Per-quarter descriptive statistics for PUDO complaints, trips, and the PUDO-per-100k-trips rate, 2024 Q3 - 2026 Q2 (n = 8).
 </figcaption>
 <div aria-describedby="tbl-summary-stats-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -408,11 +563,12 @@ Table&nbsp;1: Per-quarter descriptive statistics for PUDO complaints, trips, and
 </div>
 </figure>
 </div>
-<p>Pooling across all eight quarters gives the headline exposure-adjusted rate (<a href="#tbl-baseline" class="quarto-xref">Table&nbsp;2</a>): Over the study window Waymo averaged <strong>1.97</strong> PUDO complaints per 100,000 trips (exact Poisson 95% CI 1.78-2.16), from 417 complaints over 21.2M trips.</p>
+<p>The index-of-dispersion test (<a href="#eq-dispersion" class="quarto-xref">Equation&nbsp;3</a>) on these counts gives <span class="math inline">\(\text{VMR} \approx 5\)</span> (<span class="math inline">\(D \approx 41.5\)</span> against <span class="math inline">\(\chi^2_7\)</span>, <span class="math inline">\(p &lt; 0.001\)</span>), rejecting Poisson equidispersion — the reason every trend fit below uses the Negative-Binomial model of <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> rather than <a href="#eq-poisson-glm" class="quarto-xref">Equation&nbsp;1</a> directly. The per-quarter rates in <a href="#tbl-baseline" class="quarto-xref">Table&nbsp;3</a> and throughout use the exact interval of <a href="#eq-exact-ci" class="quarto-xref">Equation&nbsp;5</a>, not a normal approximation.</p>
+<p>Pooling across all eight quarters gives the headline exposure-adjusted rate (<a href="#tbl-baseline" class="quarto-xref">Table&nbsp;3</a>): Over the study window Waymo averaged <strong>1.97</strong> PUDO complaints per 100,000 trips (exact Poisson 95% CI 1.78-2.16), from 417 complaints over 21.2M trips.</p>
 <div id="tbl-baseline" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-baseline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2: Pooled PUDO complaint rate over the study window (417 complaints, 2024 Q3 - 2026 Q2).
+Table&nbsp;3: Pooled PUDO complaint rate over the study window (417 complaints, 2024 Q3 - 2026 Q2).
 </figcaption>
 <div aria-describedby="tbl-baseline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -436,12 +592,23 @@ Table&nbsp;2: Pooled PUDO complaint rate over the study window (417 complaints, 
 </div>
 </figure>
 </div>
-<p>Fitting a trend under both exposure denominators — trips (primary) and VMT total (cross-check) — gives the same direction (<a href="#tbl-trend" class="quarto-xref">Table&nbsp;3</a>): The exposure-adjusted trend is negative under all 2 exposure denominators tested (per-quarter change -13% to -11%; GLM p 0.001-0.007), and Mann-Kendall’s tau is negative under all of them as well, though only marginally significant (p 0.40-0.55) given the non-monotone, fell-then-flat shape of the series.</p>
+<p>Fitting the Negative-Binomial GLM of <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> under both exposure denominators — trips (primary) and VMT total (cross-check) — and reading the slope off <a href="#eq-pct-change" class="quarto-xref">Equation&nbsp;2</a> gives the same direction (<a href="#tbl-trend" class="quarto-xref">Table&nbsp;4</a>), with Kendall’s <span class="math inline">\(\tau\)</span> (<a href="#eq-kendall" class="quarto-xref">Equation&nbsp;6</a>) agreeing: The exposure-adjusted trend is negative under all 2 exposure denominators tested (per-quarter change -13% to -11%; GLM p 0.001-0.007), and Mann-Kendall’s tau is negative under all of them as well, though only marginally significant (p 0.40-0.55) given the non-monotone, fell-then-flat shape of the series.</p>
 <p>In more detail: Under the primary trips denominator, the fitted Neg. binomial slope is -10.7% per quarter (95% CI -17.8% to -3.1%, p = 0.007; total change -55% across the window).</p>
+<div id="fig-trend-fit" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-trend-fit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="assets/fig-trend-fit.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Observed PUDO complaint rate (per 100k trips, ±95% exact Poisson CI) against the fitted trend line and its 95% confidence ribbon, under the primary trips denominator."><img src="assets/fig-trend-fit.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-trend-fit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Observed PUDO complaint rate (per 100k trips, ±95% exact Poisson CI) against the fitted trend line and its 95% confidence ribbon, under the primary trips denominator.
+</figcaption>
+</figure>
+</div>
+<p><a href="#fig-trend-fit" class="quarto-xref">Figure&nbsp;1</a> shows what that decline actually looks like: a sharp drop from the 2024 Q3 launch-ramp quarter, then a rate that wanders inside a fairly narrow, overlapping band of confidence intervals for the rest of the window — a fit that is falling on average, but front-loaded rather than a steady quarter-over-quarter slide.</p>
 <div id="tbl-trend" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-trend-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;3: Poisson / Negative-Binomial trend fit and Mann-Kendall check under every exposure denominator.
+Table&nbsp;4: Poisson / Negative-Binomial trend fit and Mann-Kendall check under every exposure denominator.
 </figcaption>
 <div aria-describedby="tbl-trend-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -494,11 +661,11 @@ Table&nbsp;3: Poisson / Negative-Binomial trend fit and Mann-Kendall check under
 </figure>
 </div>
 <p>That decline is almost entirely the 2024 launch ramp — dropping that quarter cuts the slope by roughly two-thirds and the effect is no longer statistically significant (see Limitations). From 2025 Q1 onward the rate is essentially flat.</p>
-<p>The Bayesian refit (<a href="#tbl-bayes-nb" class="quarto-xref">Table&nbsp;4</a>) tells a consistent but more cautious story: A Bayesian Negative-Binomial fit (weakly informative priors, PyMC/NUTS, 4 chains x 2000 draws, 0 divergences, max R-hat 1.00) gives a posterior median slope of <strong>-10.9%</strong> per quarter (95% credible interval [-25.2%, +7.6%]) and <strong>P(the rate is declining) = 90%</strong> – consistent with, but appropriately less certain than, the frequentist p = 0.007.</p>
+<p>The Bayesian refit (<a href="#eq-bayes-nb" class="quarto-xref">Equation&nbsp;7</a>, <a href="#tbl-bayes-nb" class="quarto-xref">Table&nbsp;5</a>) tells a consistent but more cautious story, reporting <a href="#eq-p-declining" class="quarto-xref">Equation&nbsp;8</a> directly rather than a <span class="math inline">\(p\)</span>-value: A Bayesian Negative-Binomial fit (weakly informative priors, PyMC/NUTS, 4 chains x 2000 draws, 0 divergences, max R-hat 1.00) gives a posterior median slope of <strong>-10.9%</strong> per quarter (95% credible interval [-25.2%, +7.6%]) and <strong>P(the rate is declining) = 90%</strong> – consistent with, but appropriately less certain than, the frequentist p = 0.007.</p>
 <div id="tbl-bayes-nb" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-bayes-nb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;4: Bayesian Negative-Binomial trend model posterior summary (PyMC/NUTS, 4 chains x 2000 draws, 0 divergences).
+Table&nbsp;5: Bayesian Negative-Binomial trend model posterior summary (PyMC/NUTS, 4 chains x 2000 draws, 0 divergences).
 </figcaption>
 <div aria-describedby="tbl-bayes-nb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -558,18 +725,18 @@ Table&nbsp;4: Bayesian Negative-Binomial trend model posterior summary (PyMC/NUT
 <div id="fig-bayes-trend" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-bayes-trend-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="assets/fig-bayes-trend.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Bayesian Negative-Binomial posterior on the per-quarter rate change, vs.&nbsp;the frequentist point estimate and 95% CI."><img src="assets/fig-bayes-trend.png" class="img-fluid figure-img"></a>
+<a href="assets/fig-bayes-trend.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Bayesian Negative-Binomial posterior on the per-quarter rate change, vs.&nbsp;the frequentist point estimate and 95% CI."><img src="assets/fig-bayes-trend.png" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bayes-trend-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Bayesian Negative-Binomial posterior on the per-quarter rate change, vs.&nbsp;the frequentist point estimate and 95% CI.
+Figure&nbsp;2: Bayesian Negative-Binomial posterior on the per-quarter rate change, vs.&nbsp;the frequentist point estimate and 95% CI.
 </figcaption>
 </figure>
 </div>
-<p>The posterior barely shifts across a 4× range of prior width on the slope (<a href="#tbl-bayes-prior-sensitivity" class="quarto-xref">Table&nbsp;5</a>) — the conclusion is driven by the data, not the choice of prior:</p>
+<p>The posterior barely shifts across a 4× range of prior width on the slope (<a href="#tbl-bayes-prior-sensitivity" class="quarto-xref">Table&nbsp;6</a>) — the conclusion is driven by the data, not the choice of prior:</p>
 <div id="tbl-bayes-prior-sensitivity" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-bayes-prior-sensitivity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;5: Bayesian NB posterior sensitivity to the prior width on the trend slope.
+Table&nbsp;6: Bayesian NB posterior sensitivity to the prior width on the trend slope.
 </figcaption>
 <div aria-describedby="tbl-bayes-prior-sensitivity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -601,22 +768,22 @@ Table&nbsp;5: Bayesian NB posterior sensitivity to the prior width on the trend 
 </div>
 </figure>
 </div>
-<p>To place the hazard on a risk matrix, the consequence of a PUDO event is read off a risk curve — how the event rate falls as severity rises (<a href="#fig-risk-curve" class="quarto-xref">Figure&nbsp;2</a>). Nothing severe or fatal was observed at the PUDO level over the window.</p>
+<p>To place the hazard on a risk matrix, the consequence of a PUDO event is read off a risk curve — how the event rate falls as severity rises (<a href="#fig-risk-curve" class="quarto-xref">Figure&nbsp;3</a>). Nothing severe or fatal was observed at the PUDO level over the window.</p>
 <div id="fig-risk-curve" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-risk-curve-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="assets/fig-risk-curve.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: PUDO risk curve: event rate per 100,000 trips at each step up in consequence severity (log scale). The unfilled bar is a rule-of-three upper bound on a rate with zero observed events, not a measurement."><img src="assets/fig-risk-curve.png" class="img-fluid figure-img"></a>
+<a href="assets/fig-risk-curve.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: PUDO risk curve: event rate per 100,000 trips at each step up in consequence severity (log scale). The unfilled bar is a rule-of-three upper bound on a rate with zero observed events, not a measurement."><img src="assets/fig-risk-curve.png" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-risk-curve-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: PUDO risk curve: event rate per 100,000 trips at each step up in consequence severity (log scale). The unfilled bar is a rule-of-three upper bound on a rate with zero observed events, not a measurement.
+Figure&nbsp;3: PUDO risk curve: event rate per 100,000 trips at each step up in consequence severity (log scale). The unfilled bar is a rule-of-three upper bound on a rate with zero observed events, not a measurement.
 </figcaption>
 </figure>
 </div>
-<p>Combining that impact reading with a probability of a PUDO complaint occurring in a given reporting quarter (<a href="#tbl-risk-basis" class="quarto-xref">Table&nbsp;6</a> compares three ways of framing that probability) places the hazard on the matrix as follows: Probability: <strong>Almost certain</strong> (P(&gt;=1 PUDO complaint in a quarter) = 1.0000). Impact: <strong>Minor</strong> (the worst consequence tier clearing 0.1/100k trips in the risk curve above). Combined risk level: <strong>Medium</strong>.</p>
+<p>Combining that impact reading with a probability of a PUDO complaint occurring in a given reporting quarter — <a href="#tbl-risk-basis" class="quarto-xref">Table&nbsp;7</a> compares the three formulas of <a href="#eq-prob-period" class="quarto-xref">Equation&nbsp;9</a>, <a href="#eq-prob-trip" class="quarto-xref">Equation&nbsp;10</a>, and <a href="#eq-prob-bayes" class="quarto-xref">Equation&nbsp;11</a> — places the hazard on the matrix as follows: Probability: <strong>Almost certain</strong> (P(&gt;=1 PUDO complaint in a quarter) = 1.0000). Impact: <strong>Minor</strong> (the worst consequence tier clearing 0.1/100k trips in the risk curve above). Combined risk level: <strong>Medium</strong>.</p>
 <div id="tbl-risk-basis" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-risk-basis-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;6: PUDO risk-matrix placement under three probability bases (impact held fixed).
+Table&nbsp;7: PUDO risk-matrix placement under three probability bases (impact held fixed).
 </figcaption>
 <div aria-describedby="tbl-risk-basis-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -655,10 +822,10 @@ Table&nbsp;6: PUDO risk-matrix placement under three probability bases (impact h
 <div id="fig-risk-matrix" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-risk-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="assets/fig-risk-matrix.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: PUDO complaint hazard on a probability × impact risk matrix, placed from the data under the per_period probability basis."><img src="assets/fig-risk-matrix.png" class="img-fluid figure-img"></a>
+<a href="assets/fig-risk-matrix.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: PUDO complaint hazard on a probability × impact risk matrix, placed from the data under the per_period probability basis."><img src="assets/fig-risk-matrix.png" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-risk-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: PUDO complaint hazard on a probability × impact risk matrix, placed from the data under the <code>per_period</code> probability basis.
+Figure&nbsp;4: PUDO complaint hazard on a probability × impact risk matrix, placed from the data under the <code>per_period</code> probability basis.
 </figcaption>
 </figure>
 </div>
@@ -679,7 +846,7 @@ Figure&nbsp;3: PUDO complaint hazard on a probability × impact risk matrix, pla
 <h2 data-number="6.2" class="anchored" data-anchor-id="assumptions"><span class="header-section-number">6.2</span> Assumptions</h2>
 <ul>
 <li>PUDO complaints are treated as a Poisson-type count process for modeling purposes; the overdispersion test shows this needs the Negative-Binomial correction rather than being false outright.</li>
-<li>The Bayesian trend model’s priors are weakly informative and were checked for sensitivity (<a href="#tbl-bayes-prior-sensitivity" class="quarto-xref">Table&nbsp;5</a>) — the posterior does not depend meaningfully on the specific prior width chosen.</li>
+<li>The Bayesian trend model’s priors are weakly informative and were checked for sensitivity (<a href="#tbl-bayes-prior-sensitivity" class="quarto-xref">Table&nbsp;6</a>) — the posterior does not depend meaningfully on the specific prior width chosen.</li>
 <li>The risk matrix’s “Almost certain” probability reading assumes the relevant question is <em>will at least one PUDO complaint occur somewhere in the fleet this quarter</em> (it will), not the odds for any single trip.</li>
 <li>Complaint counts are assumed complete and consistently defined within each reporting era; the 2024 aggregate table and the 2025+ ride-level microdata are assumed to measure the same underlying thing.</li>
 </ul>
