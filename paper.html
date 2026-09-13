@@ -211,7 +211,8 @@ window.Quarto = {
   <li><a href="#launch-period-sensitivity-1" id="toc-launch-period-sensitivity-1" class="nav-link" data-scroll-target="#launch-period-sensitivity-1"><span class="header-section-number">5.0.2</span> Launch-period sensitivity</a></li>
   <li><a href="#robustness-checks" id="toc-robustness-checks" class="nav-link" data-scroll-target="#robustness-checks"><span class="header-section-number">5.0.3</span> Robustness checks</a></li>
   <li><a href="#bayesian-robustness-check" id="toc-bayesian-robustness-check" class="nav-link" data-scroll-target="#bayesian-robustness-check"><span class="header-section-number">5.0.4</span> Bayesian robustness check</a></li>
-  <li><a href="#spatial-pudo-risk" id="toc-spatial-pudo-risk" class="nav-link" data-scroll-target="#spatial-pudo-risk"><span class="header-section-number">5.0.5</span> Spatial PUDO risk</a></li>
+  <li><a href="#risk-curve-risk-matrix" id="toc-risk-curve-risk-matrix" class="nav-link" data-scroll-target="#risk-curve-risk-matrix"><span class="header-section-number">5.0.5</span> Risk curve &amp; risk matrix</a></li>
+  <li><a href="#spatial-pudo-risk" id="toc-spatial-pudo-risk" class="nav-link" data-scroll-target="#spatial-pudo-risk"><span class="header-section-number">5.0.6</span> Spatial PUDO risk</a></li>
   </ul></li>
   <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion"><span class="header-section-number">6</span> Discussion</a>
   <ul class="collapse">
@@ -923,7 +924,10 @@ Table&nbsp;8: Bayesian NB posterior sensitivity to the prior width on the trend 
 </div>
 </figure>
 </div>
-<p>To place the hazard on a risk matrix, the consequence of a PUDO event is read off a risk curve — how the event rate falls as severity rises (<a href="#fig-risk-curve" class="quarto-xref">Figure&nbsp;4</a>). Nothing severe or fatal was observed at the PUDO level over the window.</p>
+</section>
+<section id="risk-curve-risk-matrix" class="level3" data-number="5.0.5">
+<h3 data-number="5.0.5" class="anchored" data-anchor-id="risk-curve-risk-matrix"><span class="header-section-number">5.0.5</span> Risk curve &amp; risk matrix</h3>
+<p>Where the trend result above answers <em>how the frequency is changing</em>, this subsection places PUDO risk on a probability × impact matrix — the risk-assessment framework this paper’s core question ultimately serves. The consequence side of that placement is read off a risk curve: how the event rate falls as severity rises (<a href="#fig-risk-curve" class="quarto-xref">Figure&nbsp;4</a>). Nothing severe or fatal was observed at the PUDO level over the window.</p>
 <div id="fig-risk-curve" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-risk-curve-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -985,8 +989,8 @@ Figure&nbsp;5: PUDO complaint hazard on a probability × impact risk matrix, pla
 </figure>
 </div>
 </section>
-<section id="spatial-pudo-risk" class="level3" data-number="5.0.5">
-<h3 data-number="5.0.5" class="anchored" data-anchor-id="spatial-pudo-risk"><span class="header-section-number">5.0.5</span> Spatial PUDO risk</h3>
+<section id="spatial-pudo-risk" class="level3" data-number="5.0.6">
+<h3 data-number="5.0.6" class="anchored" data-anchor-id="spatial-pudo-risk"><span class="header-section-number">5.0.6</span> Spatial PUDO risk</h3>
 <p><code>AV_Incidents_Location</code> gives PUDO collision counts aggregated to the Census-tract level, per analysis quarter — the finest location this dataset ever resolves to (individual complaint/collision coordinates and <code>PUDOTravelLane</code> remain redacted, as throughout this paper). All 8 of 8 analysis quarters have usable location data, spanning two disjoint California service areas — the LA Basin and the SF Bay Area/Peninsula corridor — mapped as separate panels below rather than one map with empty Central Valley between them. Tract boundaries are U.S. Census Bureau TIGER/Line shapefiles <span class="citation" data-cites="census_tiger_tract"><a href="#ref-census_tiger_tract" role="doc-biblioref">[6]</a></span> — both the 2020- and 2010-vintage boundaries are used, since CPUC/Waymo’s tract identifiers mix tracts from both eras — rendered on an OpenStreetMap basemap <span class="citation" data-cites="openstreetmap"><a href="#ref-openstreetmap" role="doc-biblioref">[7]</a></span>.</p>
 <div id="tbl-spatial-coverage" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
