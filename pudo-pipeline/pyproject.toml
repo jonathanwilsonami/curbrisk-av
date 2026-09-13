@@ -16,6 +16,8 @@ dependencies = [
     "statsmodels>=0.14",
     "pandas>=2.0",
     "jupyter",
+    "pymc>=5.10",
+    "arviz>=0.17",
 ]
 
 [project.scripts]

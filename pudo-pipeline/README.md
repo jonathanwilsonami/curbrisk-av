@@ -44,9 +44,15 @@ the `log(exposure)` offset in the trend model.
 ## Exposure
 
 The primary denominator is **trips** — one completed trip = one pick-up + one
-drop-off = one PUDO opportunity. VMT (total and by phase) is carried alongside
-as a robustness check and because it is the measure named in the assignment; the
-trend direction is identical under all of them.
+drop-off = one PUDO opportunity, with no deadhead ambiguity. `vmt_total` is
+kept as a secondary cross-check; the trend direction is the same under it.
+
+The pipeline also computes VMT split by phase (`vmt_p1`/`vmt_p3`/`vmt_p1_p3`,
+plus `deadhead_share`), but **the P1/P2/P3 phase labels are not confirmed by
+CPUC** — none of the "Reference Key" data-dictionary files across any of the 9
+reports define what "Period 1/2/3" mean; the deadhead/en-route/passenger
+labels are a carried-over working guess. The notebook's analysis does not use
+these phase-split columns for that reason.
 
 ## Outputs (`data/parquet/`)
 

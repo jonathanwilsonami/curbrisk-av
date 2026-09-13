@@ -13,7 +13,7 @@
 3. Prefer minimal, validated increments over rewrites. One fix, verified,
    then the next.
 4. Polars, not pandas, for the pipeline. Pandas only inside the notebook for
-   statsmodels interop.
+   statsmodels/PyMC interop.
 
 ## What this project is
 
@@ -30,6 +30,21 @@ Quarterly Reporting.
 
 Deliverable is the answer + notebook plots, not a production system. But the
 package should be runnable by teammates via `pip install -e . && pudo-build`.
+
+There is also a Quarto project site at `project-site/` (course paper +
+write-up, published to GitHub Pages) — separate from the pipeline. `paper.qmd`
+never has numbers pasted in by hand: the notebook's setup cell defines
+`save_fig` / `save_table` / `save_text` helpers that write PNGs and captioned
+Pandoc-table/prose `.md` fragments straight into `project-site/assets/`
+(relative path from the notebook, no copying of the notebook itself), and
+`paper.qmd` pulls them in as numbered, cross-referenceable figures/tables via
+`![]()` and `{{< include >}}`. See `project-site/README.md` for the exact
+workflow and the one gotcha (`{{< include >}}` must be alone on its source
+line or Quarto silently drops it). This design exists because `{{< embed
+notebook.ipynb#tag >}}` was tried first and rejected: Quarto refuses to
+render/embed a notebook living outside its own project directory (errors
+trying to clean up `_files/` dirs it doesn't own) — don't re-attempt embed
+across the `pudo-pipeline/` ↔ `project-site/` boundary.
 
 ## Repo layout
 
@@ -55,11 +70,13 @@ Every period carries `period_id` (clean `YYYYQn` for sort/filter/join),
 quarters), `window_start` / `window_end` dates, and `is_calendar_quarter`
 (false only for 2024Q3/2024Q4). Set in `config._period_meta`.
 
-`pudo_summary` also carries five exposure denominators and a matching
-`pudo_per_100k_*` rate for each (`vmt` / `vmt_total`, `vmt_p1`, `vmt_p3`,
-`vmt_p1_p3`, `trips`), plus `deadhead_share` (= `vmt_p1 / vmt_total`) and
-`pudo_share_of_complaints` (= `pudo_complaints / all_complaints`).
-`build_summary` takes `(pudo_counts, monthly)`.
+`pudo_summary` (the parquet, pipeline-side) still carries five exposure
+denominators and a matching `pudo_per_100k_*` rate for each (`vmt` /
+`vmt_total`, `vmt_p1`, `vmt_p3`, `vmt_p1_p3`, `trips`), plus `deadhead_share`
+(= `vmt_p1 / vmt_total`) and `pudo_share_of_complaints`
+(= `pudo_complaints / all_complaints`). `build_summary` takes
+`(pudo_counts, monthly)`. **The notebook, however, only uses two of these**
+(`trips` and `vmt_total`) — see the note below on the P1/P2/P3 columns.
 
 ## Source data facts (established, don't re-derive)
 
@@ -86,9 +103,17 @@ quarters), `window_start` / `window_end` dates, and `is_calendar_quarter`
   `VIN` are redacted.** Complaints are dated only to the reporting period of
   their file; `month` is null by design. No within-quarter timing/location.
 - **`Month_Level` is the exposure source**: real `Year`/`Month`, `TotalTrips`,
-  `TotalVMTPeriod1/2/3`, `TotalPMT`. (P1 = deadhead to pickup,
-  P3 = passenger-carrying; PUDO events occur at the P1/P3 boundary.)
-  `vmt_total = P1 + P2 + P3`.
+  `TotalVMTPeriod1/2/3`, `TotalPMT`. `vmt_total = P1 + P2 + P3` is solid (just
+  addition). **What P1/P2/P3 individually mean is NOT verified** — grepped every
+  CPUC Reference Key file across all 9 reports for "Period" or "VMT" and got
+  zero hits; the "P1 = deadhead to pickup, P3 = passenger-carrying" labels in
+  `config.py`/`transform.py` comments are a carried-over working guess from an
+  earlier session, not a confirmed CPUC definition. Consequence: the notebook
+  now treats `trips` as the primary exposure measure (team decision — a trip
+  count has no deadhead ambiguity) and keeps only `vmt_total` (not the phase
+  splits) as a secondary cross-check; `vmt_p1`/`vmt_p3`/`vmt_p1_p3`/
+  `deadhead_share` are computed in the pipeline but no longer used in the
+  notebook's analysis.
 - **Month_Level numerics are comma-grouped / quoted from 2024P4 on**
   (`"354,124"`, `"1,625,253.10"`). `_to_float` strips `,` and `$` before the
   cast; `_cast_numeric_with_warning` / `_warn_missing_columns` warn loudly if a
@@ -119,33 +144,83 @@ quarters), `window_start` / `window_end` dates, and `is_calendar_quarter`
 
 1. Numerator: `pudo_counts.pudo_complaints` per analysis period (aggregate
    `ComplaintsPUDO` for 2024, microdata `ComplaintPUDO=="Y"` sum for 2025Q1+).
-2. Denominator: five options, all summed from `monthly` over the covered months —
-   `vmt_total` (assignment default), `vmt_p1` (deadhead→pickup, tightest PUDO
-   proxy), `vmt_p3` (passenger→dropoff), `vmt_p1_p3`, and `trips` (one PU + one
-   DO per trip; best-justified on first principles). Report VMT; note trips.
-3. **§1 Baseline** — per-period rate with an exact Poisson 95% CI (χ² method,
-   `scipy.stats.chi2`), the pooled rate (headline: ~0.31 / 100k mi), rate
-   dispersion (CV, VMR), and PUDO's share of all complaint categories.
-4. **§2 Distribution** — 3-panel counts/exposure/rate, rate with CI error bars,
-   an indexed-to-100 chart, small multiples of the rate under each denominator,
-   and the deadhead share over time.
-5. **§3 Trend** — Poisson GLM `complaints ~ t`, `offset=log(exposure)`; auto-
-   switch to Negative Binomial (alpha by MLE) when Pearson χ²/df > 1.5 (it's
-   ≈5). Refit under every denominator; Mann-Kendall (`kendalltau`) as a
-   distribution-free check; fitted-trend + CI ribbon overlay; leave-one-out and
-   drop-2024Q3 sensitivity. Guard: raises if <4 periods have exposure.
-6. Risk chart: high likelihood / low severity → medium "monitor and mitigate";
-   direction arrow flat-to-down.
+2. Denominator: **trips** (primary — team decision; one PU + one DO per trip,
+   no deadhead ambiguity) with **`vmt_total`** kept as the one secondary
+   cross-check. The phase-split VMT variants (`vmt_p1`, `vmt_p3`, `vmt_p1_p3`)
+   and `deadhead_share` are dropped from the notebook's analysis — see the
+   P1/P2/P3 note above.
+3. **§1 Baseline** — scoped to `final_pudo_summary`'s columns (`period_label`,
+   `trips`, `pudo_complaints`). (1a) descriptive summary-stats table for
+   counts / trips / rate — no VMT; (1b) count-model justification:
+   index-of-dispersion test (D = (n-1)·VMR ≈ 41.5 ~ χ²₇, p<0.001 →
+   overdispersed) + why exact Poisson CIs over Wald; (1c) per-period rate
+   (trips) with an exact Poisson 95% CI (χ² method, `scipy.stats.chi2`) and
+   the pooled rate (headline **1.97 / 100k trips**). Plus PUDO's share of all
+   complaint categories (unaffected by the trips/VMT choice).
+4. **§2 Distribution** — 3-panel counts/exposure(trips)/rate, rate with CI
+   error bars, an indexed-to-100 chart (complaints/trips/rate), and a
+   trips-vs-VMT-cross-check small-multiples panel. Deadhead-share panel
+   removed (built entirely on the unverified `vmt_p1`).
+5. **§3 Trend** — Poisson GLM `complaints ~ t`, `offset=log(exposure)`, fit on
+   **trips**; auto-switch to Negative Binomial (alpha by MLE) when Pearson
+   χ²/df > 1.5 (it's ≈5). Refit under the VMT-total cross-check; Mann-Kendall
+   (`kendalltau`) as a distribution-free check; fitted-trend + CI ribbon
+   overlay (trips); leave-one-out and drop-2024Q3 sensitivity (trips). Guard:
+   raises if <4 periods have exposure. **§3b Bayesian NB check** (PyMC/NUTS,
+   new dependency `pymc`/`arviz`): same model, weakly-informative priors
+   (`b0 ~ Normal(log(pooled rate), 2)`, `b1 ~ Normal(0, 1)`,
+   `alpha ~ Exponential(1)`), 4 chains × 2000 draws — reports the full
+   posterior on the slope instead of a Wald CI built on an MLE-plugged-in
+   dispersion, plus P(slope<0) and a prior-width sensitivity check (barely
+   moves across 0.5–2.0 sigma on the slope prior — data-driven, not
+   prior-driven). **Gotcha:** PyMC's `NegativeBinomial(mu, alpha)` parametrizes
+   `variance = mu + mu²/alpha` (higher alpha = closer to Poisson) — the
+   *inverse* sense from statsmodels' NB2 `alpha` (`variance = mu + alpha·mu²`,
+   higher = more overdispersion). Never compare the two alphas numerically.
+   Any future Bayesian addition should follow the same pattern established
+   here: report R-hat + divergence count, and run a prior-sensitivity sweep
+   before trusting the posterior.
+6. **§5 Risk curve & matrix** — (already trips-based, unchanged) risk curve =
+   PUDO event rate per 100k trips at each severity step (complaint 1.97 →
+   collision 1.69 → VRU collision 0.05 → severe/fatal 0, upper bound 0.02);
+   sets Impact = **Minor**. 5×5 Impact × Probability heat-map with
+   `PROB_BASIS` toggle: `per_period` (P≥1 in a quarter ≈1 → Almost certain)
+   and `bayesian` → **Medium**; `per_trip` (~1 in 51k) → Moderate → **Low**.
+   Headline placement **Medium / monitor-and-mitigate**, direction arrow
+   flat-to-down.
 
-Current result: pooled baseline **0.31 PUDO complaints per 100k miles**
-(417 over 137M mi; exact 95% CI 0.28–0.34) ≈ 1.97 per 100k trips. Exposure-
-adjusted trend is **falling** — NB −12.7 %/quarter (95% CI −20 % to −5 %,
-p≈0.001), total ≈ −61 % over the window; **negative under all five
-denominators** (−8 % to −15 %/qtr) and Mann-Kendall τ negative under all
-(though MK p only 0.06–0.72 — the series is non-monotone). BUT dropping the
-2024Q3 launch-ramp quarter (rate 3.2× the rest) roughly halves the slope to
-−5 %/qtr, p≈0.05; since 2025Q1 the rate is flat ~0.24–0.31 / 100k VMT. Framing
-call for the write-up: "fell during scale-up, then plateaued."
+Current result: pooled baseline **1.97 PUDO complaints per 100k trips**
+(417 over 21.2M trips; exact 95% CI 1.78–2.16). Exposure-adjusted trend is
+**falling** — NB −10.7 %/quarter (95% CI −18 % to −3 %, p=0.007), total ≈ −55 %
+over the window; **same direction under the VMT-total cross-check**
+(−12.7 %/qtr, p=0.001) and Mann-Kendall τ negative under both (MK p 0.40–0.55
+— the series is non-monotone). BUT dropping the 2024Q3 launch-ramp quarter
+(rate 2.9× the rest) cuts the slope to −3.0 %/qtr, **p=0.25 — no longer
+significant**; since 2025Q1 the rate is flat ~1.48–1.88 / 100k trips.
+**Bayesian NB check agrees but is more cautious**: posterior median −10.9%/qtr,
+95% credible interval [−25.2%, +7.6%] (crosses zero, unlike the frequentist
+Wald CI), **P(rate is declining) = 90%** — insensitive to prior width (90.0–
+90.6% across σ=0.5–2.0 on the slope prior). Framing call for the write-up:
+"fell during scale-up, then plateaued — very likely, not certain."
+
+Risk placement: **Medium** (Almost certain × Minor), monitor-and-mitigate,
+arrow flat-to-down.
+
+## Editing the notebook (tooling notes)
+
+- **Read tool chokes on the executed notebook** once it has enough baked-in PNG
+  outputs (~10+ figures pushes it over the 25k-token read limit), regardless of
+  `offset`/`limit`. Fix: strip outputs first —
+  `for c in nb["cells"]: c["outputs"]=[]; c["execution_count"]=None` via a
+  small Python/json script — then Read, make edits, then
+  `jupyter nbconvert --to notebook --execute --inplace` to regenerate outputs.
+- **NotebookEdit `insert` always lands immediately after the given `cell_id`.**
+  To insert two new cells A then B (in that reading order) after some anchor,
+  insert B first (anchor→B), then insert A with the same anchor (anchor→A→B).
+- Re-execute the *whole* notebook top-to-bottom after any cell edit and check
+  `outputs` for `output_type: error` before trusting it — cells share one
+  kernel namespace, so a change early on can silently break something later
+  that isn't obvious from the edited cell alone.
 
 ## Known caveats for the write-up
 
