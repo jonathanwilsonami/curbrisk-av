@@ -356,6 +356,20 @@ Pooling across all eight quarters gives the headline exposure-adjusted rate
 
 {{< include assets/tbl-baseline.md >}}
 
+PUDO complaints are also worth reading in context of everything else riders
+report. @fig-pudo-share stacks the PUDO count against every other reported
+complaint category, per quarter:
+
+![PUDO complaints against all other reported complaint categories, per
+quarter.](assets/fig-pudo-share.png){#fig-pudo-share}
+
+{{< include assets/pudo-share-headline.md >}}
+PUDO complaints scale with total complaint volume — the PUDO share stays in a
+fairly narrow band rather than drifting — so PUDO is not a shrinking or
+growing slice of the overall complaint mix; it is consistently the largest
+category tied to a specific vehicle maneuver rather than a general safety or
+"other" catch-all.
+
 Fitting the Negative-Binomial GLM of @eq-nb2 under both exposure denominators
 — trips (primary) and VMT total (cross-check) — and reading the slope off
 @eq-pct-change gives the same direction (@tbl-trend), with Kendall's $\tau$

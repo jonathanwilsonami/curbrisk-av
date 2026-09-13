@@ -1,0 +1,1 @@
+PUDO complaints average **13%** of all reported complaint categories over the window (range 10%-17%), making PUDO the largest location/behaviour complaint category (Safety and 'Other' are larger overall categories, but are not location-specific).
