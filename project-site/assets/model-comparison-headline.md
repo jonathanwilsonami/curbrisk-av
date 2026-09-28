@@ -1,0 +1,1 @@
+Re-verifying (not assuming) the Poisson-vs-Negative-Binomial choice with the full comparison toolkit (log-likelihood, AIC, BIC, Pearson dispersion, discrete goodness-of-fit): Full (n=8): lowest AIC/BIC -> Neg. binomial; Post-ramp (n=6): lowest AIC/BIC -> Poisson.

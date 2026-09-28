@@ -92,6 +92,14 @@ record: California Public Utilities Commission (CPUC) AV Deployment reports are
 large, redacted, and change format from quarter to quarter, so nobody has simply
 lined them up into a rate over time.
 
+Beyond Waymo specifically, PUDO-type friction is a useful early empirical
+signal for autonomous-vehicle deployment more broadly: as AV operations
+expand to new cities, road layouts, and weather conditions, understanding how
+curb-side risk behaves under a scaling single-carrier deployment is a natural
+first step. The rates found here, however, come from one carrier operating in
+California and should not be read as representative of AV operations
+generally (see Scope, below).
+
 ### Contribution
 
 - A reproducible pipeline (`pudo-pipeline`) that ingests nine CPUC quarterly
@@ -202,6 +210,23 @@ fully characterize parameter and dispersion uncertainty. The Poisson fit below
 is retained only as an initial diagnostic baseline — it is never reported as
 the trend result.
 
+### Distributional diagnostics
+
+Before any count model is fit, the raw quarterly PUDO rate is characterized
+directly: histograms (mean/median annotated), normal Q-Q plots, and a
+Shapiro-Wilk test (@tbl-shapiro-rate; $H_0$: the rate values are drawn from a
+normal distribution) are computed for both the full window and the post-ramp
+window introduced below. Two two-sample Kolmogorov-Smirnov (KS) comparisons
+are also run, but only where a real, adequately-sized empirical sample exists
+on both sides: the 2024 launch-quarter rates against the 2025–2026 rates
+(descriptive only — $n=2$ vs. $n=6$ is under-powered), and the monthly
+trip-exposure distributions for 2025 ($n=12$) against 2026 ($n=6$, partial
+year), which is the one case here where a two-sample KS test is genuinely
+well-powered. These diagnostics motivate, rather than assume, the choice of a
+count-model (Poisson/Negative-Binomial) framework over classic parametric
+mean-comparison tests for the complaint rate throughout the rest of this
+paper.
+
 ### Poisson regression (initial diagnostic baseline)
 
 The complaint count $Y_t$ in analysis quarter $t = 0, \dots, 7$ is first
@@ -258,6 +283,42 @@ relative to Poisson under this parametrization). This is the paper's
 **primary frequentist trend model**, reported with $\beta_1$, its standard
 error, 95% confidence interval, $p$-value, and the incidence rate ratio and
 percent change of @eq-pct-change.
+
+### Model comparison diagnostics
+
+The choice of Negative Binomial over Poisson (@eq-dispersion) is re-verified
+with the standard model-comparison toolkit rather than relying on the
+dispersion test alone: log-likelihood, AIC, BIC, Pearson $\chi^2/\text{df}$,
+and a discrete goodness-of-fit (GOF) test. Because neither model's cumulative
+distribution function is continuous, a plain continuous-KS diagnostic does
+not apply directly; GOF is instead assessed via randomized probability-
+integral-transform (PIT) values — for each observation, drawing
+$u \sim \text{Uniform}\big(F(y-1), F(y)\big)$ under the fitted model's CDF —
+pooled and Kolmogorov-Smirnov-tested against $\text{Uniform}(0,1)$. This full
+comparison (@tbl-model-comparison) is run on **both** the full window and the
+post-ramp window, so the model choice is checked again on the smaller, more
+homogeneous 2025–2026 subset rather than carried over by default.
+
+### Potential software-release effect
+
+The sharp reduction in PUDO complaint rates after the 2024 launch period
+temporally coincides with a major Waymo Driver software update. In a
+subsequent NHTSA recall filing, Waymo identified a new 5th-generation
+Automated Driving System (ADS) driverless software release dated November 7,
+2024. Waymo reported that software improvements were deployed across the
+fleet through December 26, 2024, and that the release significantly reduced
+the likelihood of collisions with chains, gates, and similar roadway barriers
+[@nhtsa_waymo_25e034_2025]. NHTSA's recall acknowledgment independently
+identifies the November 7 release and confirms that all affected vehicles had
+received the updated ADS software by December 26, 2024
+[@nhtsa_waymo_25e034_ack_2025].
+
+Thus, 2025 Q1 is the first full analysis quarter following completion of this
+software deployment. The timing provides a plausible engineering hypothesis
+for a structural change in observed complaint rates; however, the
+documentation does not establish that the release specifically changed PUDO
+behavior or caused the observed decline. Treat this as a temporal association
+and candidate intervention, not causal evidence.
 
 ### Launch-period sensitivity
 
@@ -349,6 +410,35 @@ alongside the frequentist estimate, not as a claim that it fits the data
 better: no model-comparison criterion (e.g. WAIC/LOO) or posterior-predictive
 check is computed here, so no such claim is made.
 
+### Latest-quarter contrast
+
+The main question this update adds is whether the **most recent** quarter
+differs from the rest of the post-ramp window, controlling for exposure.
+Complaints carry no time resolution finer than the reporting quarter
+(confirmed directly against the underlying data, not assumed), so the latest
+quarter is exactly one observation — comparing one observation against a
+handful of quarterly aggregates with a rank test (Mann-Whitney U) or a
+$t$-test is not a valid two-sample test. Two regression-based contrasts are
+used instead, both fit on the post-ramp window:
+
+1. A **regime-indicator Negative-Binomial regression**,
+   $Y_t \sim \text{NB}(\mu_t, \alpha)$ with
+   $\log\mu_t = \log E_t + \beta_0 + \beta_{\text{latest}}\,\mathbb{1}[t = \text{latest}]$,
+   testing $H_0: \beta_{\text{latest}} = 0$ via a Wald test, reported with its
+   incidence rate ratio (effect size), 95% CI, and an approximate post-hoc
+   power at the observed effect size (illustrative only, given $n=6$).
+2. A **leave-latest-out predictive check**: @eq-nb2 refit on the post-ramp
+   quarters *preceding* the latest one, producing a predictive rate and 95%
+   interval (delta method) for what the latest quarter should look like under
+   the established recent pattern; the actually-observed rate is checked
+   against that interval.
+
+The same regime-indicator model is additionally fit in the Bayesian framework
+of @eq-bayes-nb (weakly informative priors, PyMC/NUTS), reporting the
+posterior probability the latest quarter's rate is higher or lower than the
+rest of the post-ramp window, for comparison against the frequentist
+contrast.
+
 ### Risk-matrix probability basis
 
 To place the PUDO hazard on a probability × impact risk matrix, three ways of
@@ -392,8 +482,19 @@ grows nearly 6× across the window.
 
 {{< include assets/tbl-summary-stats.md >}}
 
+That growth is not just quarter-to-quarter: @fig-trips-monthly-boxplot shows
+the real within-quarter spread in monthly trip volume (median and
+interquartile range built from the underlying monthly observations, not a
+synthetic range from a single quarterly total). PUDO complaints have no
+equivalent view — every complaint record is dated only to its reporting
+quarter, not to a month within it — so only the exposure side of this
+analysis can be shown at this resolution.
+
+![Within-quarter variability in trip exposure: monthly trips, median and
+IQR per analysis quarter.](assets/fig-trips-monthly-boxplot.png){#fig-trips-monthly-boxplot}
+
 The index-of-dispersion test (@eq-dispersion) on these counts gives
-$\text{VMR} \approx 5$ ($D \approx 41.5$ against $\chi^2_7$, $p < 0.001$),
+$\text{VMR} \approx 5.9$ ($D \approx 41.5$ against $\chi^2_7$, $p < 0.001$),
 rejecting Poisson equidispersion — the reason every trend fit below uses the
 Negative-Binomial model of @eq-nb2 rather than @eq-poisson-glm directly. The
 per-quarter rates in @tbl-baseline and throughout use the exact interval of
@@ -418,6 +519,54 @@ fairly narrow band rather than drifting — so PUDO is not a shrinking or
 growing slice of the overall complaint mix; it is consistently the largest
 category tied to a specific vehicle maneuver rather than a general safety or
 "other" catch-all.
+
+### Distributional diagnostics: full vs. post-ramp
+
+The same per-quarter statistics are also computed for the post-ramp window
+(2025 Q1 – 2026 Q2, $n=6$) used throughout the Launch-period sensitivity and
+Latest-quarter results below:
+
+{{< include assets/tbl-summary-stats-post-ramp.md >}}
+
+@fig-rate-histograms and @fig-rate-qq show the quarterly PUDO rate's
+distribution in both windows; @tbl-shapiro-rate reports the Shapiro-Wilk
+normality test for each ($H_0$: the rate values are normally distributed):
+{{< include assets/shapiro-headline.md >}}
+
+{{< include assets/tbl-shapiro-rate.md >}}
+
+![Quarterly PUDO rate distribution, full vs. post-ramp
+window.](assets/fig-rate-histograms.png){#fig-rate-histograms}
+
+![Normal Q-Q plots: quarterly PUDO rate, full vs. post-ramp
+window.](assets/fig-rate-qq.png){#fig-rate-qq}
+
+With $n=6$–$8$ and, in the full window, a single extreme launch-period
+outlier (2024 Q3), this is exactly why classic parametric mean-comparison
+tests are not used anywhere in this paper for the complaint rate — every
+trend and contrast in this paper instead models the rate through the
+count-model (Poisson/Negative-Binomial) framework, which treats the data as
+counts over exposure rather than assuming the rate itself is Gaussian.
+
+@fig-rate-ks compares the empirical CDFs of the 2024 launch-quarter rates
+against the 2025–2026 rates directly; with $n=2$ against $n=6$ this two-sample
+KS comparison is descriptive only, not a well-powered test.
+
+![Empirical CDFs: 2024 launch-quarter PUDO rate vs. 2025–2026 PUDO rate
+(descriptive; $n$ too small for a reliable $p$-value).](assets/fig-rate-ks.png){#fig-rate-ks}
+
+A better-powered two-sample KS comparison is available for monthly trip
+exposure, where 2025 and 2026 each contribute a real per-month sample
+($n=12$ and $n=6$). @fig-trips-qq and @fig-trips-ks show the Q-Q plots and
+empirical CDFs used to check the normality assumption behind a companion
+Welch two-sample $t$-test comparing monthly 2025 and 2026 trip volumes
+directly (reported in the companion notebook) — a check on trip *volume*
+growth, distinct from the exposure-adjusted complaint-rate contrast in
+"Is the latest quarter different?" below.
+
+![Normal Q-Q plots: monthly trips, 2025 vs. 2026.](assets/fig-trips-qq.png){#fig-trips-qq}
+
+![Empirical CDFs: monthly trips, 2025 vs. 2026.](assets/fig-trips-ks.png){#fig-trips-ks}
 
 ### Primary trend: Negative-Binomial regression
 
@@ -463,6 +612,31 @@ observed during the 2024 launch period, while rates from 2025 onward appear
 comparatively stable — consistent with a launch/ramp-period effect rather than
 a continuing decline, though this does not establish causation.
 
+### Model comparison: Poisson vs. Negative Binomial (full vs. post-ramp)
+
+Section 1's dispersion-test-only justification for Negative Binomial
+(@eq-dispersion) is checked again here with the fuller model-comparison
+toolkit described in Methods, on **both** windows (@tbl-model-comparison):
+{{< include assets/model-comparison-headline.md >}}
+
+{{< include assets/tbl-model-comparison.md >}}
+
+![Residual diagnostics: Pearson residuals vs. fitted mean, for each
+model/window combination.](assets/fig-residual-diagnostics.png){#fig-residual-diagnostics}
+
+The result is not assumed to carry over unchanged: the post-ramp window is
+smaller and — per the Pearson $\chi^2/\text{df}$ column — far less
+overdispersed than the full window, since it excludes the volatile 2024
+launch quarters. When a window shows little real overdispersion, Negative
+Binomial's extra dispersion parameter earns its AIC/BIC complexity penalty
+less easily than in the full window; @tbl-model-comparison reports whichever
+model actually wins in each case, rather than carrying the full-window
+conclusion over by assumption. @fig-residual-diagnostics shows no systematic
+pattern in the Pearson residuals for either model in either window. Either
+way, the discrete GOF test finds no
+strong evidence against either model's fit in either window at this sample
+size.
+
 ### Robustness checks
 
 Refitting @eq-nb2 under the VMT-total cross-check gives the same direction as
@@ -495,6 +669,30 @@ The posterior barely shifts across a 4× range of prior width on the slope
 choice of prior:
 
 {{< include assets/tbl-bayes-prior-sensitivity.md >}}
+
+### Is the latest quarter different?
+
+This update's main question: controlling for trip exposure, does the most
+recent quarter look different from the rest of the post-ramp window? As
+established in Methods, complaints have no time resolution finer than the
+reporting quarter, so the latest quarter is exactly one observation and a
+rank test (Mann-Whitney U) or $t$-test comparing it against a handful of
+quarterly aggregates would not be a valid two-sample test — the two
+regression-based contrasts of the Latest-quarter contrast methods section are
+used instead (@tbl-latest-quarter):
+{{< include assets/latest-quarter-headline.md >}}
+
+{{< include assets/tbl-latest-quarter.md >}}
+
+The regime-indicator contrast's effect size and confidence interval, and the
+leave-latest-out predictive check's interval, both come from a six-quarter
+window — enough to rule out only a large shift, not a small one (see
+Limitations). The Bayesian regime-indicator fit (@tbl-bayes-latest-quarter)
+reaches the same qualitative reading with an explicit posterior probability
+rather than a $p$-value:
+{{< include assets/bayes-latest-quarter-headline.md >}}
+
+{{< include assets/tbl-bayes-latest-quarter.md >}}
 
 ### Risk curve & risk matrix
 
@@ -651,6 +849,14 @@ quarter).](assets/fig-spatial-rate-sf-bay-area.png){#fig-spatial-rate-bay}
   travel-lane PUDO signal is unavailable in every file.
 - Single carrier, single state, eight quarters — not yet a cross-carrier or
   multi-state comparison.
+- The latest-quarter contrasts (*Is the latest quarter different?*) add a
+  further small-sample constraint on top of the post-ramp window itself: with
+  only $n=6$ quarters and a 1-vs-5 split, they can rule out only a large
+  shift in the most recent quarter, not a small one — the same caveat that
+  applies to the post-ramp sensitivity check above.
+- The potential software-release effect is a temporal association with a
+  plausible engineering mechanism, not established causal evidence that the
+  November–December 2024 software update changed PUDO behavior specifically.
 
 # Conclusion and Future Work
 
@@ -671,6 +877,24 @@ out a smaller ongoing decline, only a large one; as more CPUC quarters are
 published the same pipeline can extend the trend directly, and applying it to
 other CPUC-reporting AV carriers would turn a single-carrier trend into a
 cross-carrier comparison.
+
+Three distinct eras run through this update: an elevated 2024 launch/ramp
+period; a comparatively stable 2025–2026 operating period that begins right
+around a documented Waymo Driver software release (deployed fleet-wide
+between November 7 and December 26, 2024) — a plausible engineering
+explanation for the launch-period drop, though not established as causal;
+and the question of whether the *latest available* quarter breaks that
+stability. On that last question, both regression-based contrasts (a
+regime-indicator model and a leave-latest-out predictive check, run because
+neither a rank test nor a $t$-test is valid at this sample size) and the
+matching Bayesian check find no statistically significant departure from the
+rest of the post-ramp window — the latest quarter reads as consistent with,
+not a break from, the 2025–2026 pattern, though the small post-ramp sample
+can only rule out a large shift, not a small one. Beyond this single
+deployment, PUDO-type complaint patterns are an early empirical data point
+for AV curb-side risk as deployments expand to new cities and conditions — a
+signal worth continuing to track as new CPUC quarters arrive, not a basis for
+projecting the California rates found here onto other markets.
 
 # References {.unnumbered}
 

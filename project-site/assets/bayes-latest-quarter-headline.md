@@ -1,0 +1,1 @@
+A Bayesian regime-indicator NB fit on the post-ramp window gives a posterior median IRR of **1.124** for 2026Q2 vs. the rest (95% credible interval [0.405, 3.842]), with P(higher) = 59% and P(lower) = 41% -- agreeing with the frequentist regime-indicator contrast (p = 0.485).
