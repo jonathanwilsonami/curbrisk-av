@@ -195,24 +195,31 @@ window.Quarto = {
   <li><a href="#feature-engineering" id="toc-feature-engineering" class="nav-link" data-scroll-target="#feature-engineering"><span class="header-section-number">4.1</span> Feature Engineering</a></li>
   <li><a href="#modeling" id="toc-modeling" class="nav-link" data-scroll-target="#modeling"><span class="header-section-number">4.2</span> Modeling</a>
   <ul class="collapse">
-  <li><a href="#poisson-regression-initial-diagnostic-baseline" id="toc-poisson-regression-initial-diagnostic-baseline" class="nav-link" data-scroll-target="#poisson-regression-initial-diagnostic-baseline"><span class="header-section-number">4.2.1</span> Poisson regression (initial diagnostic baseline)</a></li>
-  <li><a href="#overdispersion-check" id="toc-overdispersion-check" class="nav-link" data-scroll-target="#overdispersion-check"><span class="header-section-number">4.2.2</span> Overdispersion check</a></li>
-  <li><a href="#negative-binomial-regression-primary-trend-model" id="toc-negative-binomial-regression-primary-trend-model" class="nav-link" data-scroll-target="#negative-binomial-regression-primary-trend-model"><span class="header-section-number">4.2.3</span> Negative-Binomial regression (primary trend model)</a></li>
-  <li><a href="#launch-period-sensitivity" id="toc-launch-period-sensitivity" class="nav-link" data-scroll-target="#launch-period-sensitivity"><span class="header-section-number">4.2.4</span> Launch-period sensitivity</a></li>
-  <li><a href="#exact-garwood-poisson-confidence-interval" id="toc-exact-garwood-poisson-confidence-interval" class="nav-link" data-scroll-target="#exact-garwood-poisson-confidence-interval"><span class="header-section-number">4.2.5</span> Exact (Garwood) Poisson confidence interval</a></li>
-  <li><a href="#distribution-free-trend-check-robustness" id="toc-distribution-free-trend-check-robustness" class="nav-link" data-scroll-target="#distribution-free-trend-check-robustness"><span class="header-section-number">4.2.6</span> Distribution-free trend check (robustness)</a></li>
-  <li><a href="#bayesian-negative-binomial-refit" id="toc-bayesian-negative-binomial-refit" class="nav-link" data-scroll-target="#bayesian-negative-binomial-refit"><span class="header-section-number">4.2.7</span> Bayesian Negative-Binomial refit</a></li>
-  <li><a href="#risk-matrix-probability-basis" id="toc-risk-matrix-probability-basis" class="nav-link" data-scroll-target="#risk-matrix-probability-basis"><span class="header-section-number">4.2.8</span> Risk-matrix probability basis</a></li>
+  <li><a href="#distributional-diagnostics" id="toc-distributional-diagnostics" class="nav-link" data-scroll-target="#distributional-diagnostics"><span class="header-section-number">4.2.1</span> Distributional diagnostics</a></li>
+  <li><a href="#poisson-regression-initial-diagnostic-baseline" id="toc-poisson-regression-initial-diagnostic-baseline" class="nav-link" data-scroll-target="#poisson-regression-initial-diagnostic-baseline"><span class="header-section-number">4.2.2</span> Poisson regression (initial diagnostic baseline)</a></li>
+  <li><a href="#overdispersion-check" id="toc-overdispersion-check" class="nav-link" data-scroll-target="#overdispersion-check"><span class="header-section-number">4.2.3</span> Overdispersion check</a></li>
+  <li><a href="#negative-binomial-regression-primary-trend-model" id="toc-negative-binomial-regression-primary-trend-model" class="nav-link" data-scroll-target="#negative-binomial-regression-primary-trend-model"><span class="header-section-number">4.2.4</span> Negative-Binomial regression (primary trend model)</a></li>
+  <li><a href="#model-comparison-diagnostics" id="toc-model-comparison-diagnostics" class="nav-link" data-scroll-target="#model-comparison-diagnostics"><span class="header-section-number">4.2.5</span> Model comparison diagnostics</a></li>
+  <li><a href="#potential-software-release-effect" id="toc-potential-software-release-effect" class="nav-link" data-scroll-target="#potential-software-release-effect"><span class="header-section-number">4.2.6</span> Potential software-release effect</a></li>
+  <li><a href="#launch-period-sensitivity" id="toc-launch-period-sensitivity" class="nav-link" data-scroll-target="#launch-period-sensitivity"><span class="header-section-number">4.2.7</span> Launch-period sensitivity</a></li>
+  <li><a href="#exact-garwood-poisson-confidence-interval" id="toc-exact-garwood-poisson-confidence-interval" class="nav-link" data-scroll-target="#exact-garwood-poisson-confidence-interval"><span class="header-section-number">4.2.8</span> Exact (Garwood) Poisson confidence interval</a></li>
+  <li><a href="#distribution-free-trend-check-robustness" id="toc-distribution-free-trend-check-robustness" class="nav-link" data-scroll-target="#distribution-free-trend-check-robustness"><span class="header-section-number">4.2.9</span> Distribution-free trend check (robustness)</a></li>
+  <li><a href="#bayesian-negative-binomial-refit" id="toc-bayesian-negative-binomial-refit" class="nav-link" data-scroll-target="#bayesian-negative-binomial-refit"><span class="header-section-number">4.2.10</span> Bayesian Negative-Binomial refit</a></li>
+  <li><a href="#latest-quarter-contrast" id="toc-latest-quarter-contrast" class="nav-link" data-scroll-target="#latest-quarter-contrast"><span class="header-section-number">4.2.11</span> Latest-quarter contrast</a></li>
+  <li><a href="#risk-matrix-probability-basis" id="toc-risk-matrix-probability-basis" class="nav-link" data-scroll-target="#risk-matrix-probability-basis"><span class="header-section-number">4.2.12</span> Risk-matrix probability basis</a></li>
   </ul></li>
   </ul></li>
   <li><a href="#evaluation-and-results" id="toc-evaluation-and-results" class="nav-link" data-scroll-target="#evaluation-and-results"><span class="header-section-number">5</span> Evaluation and Results</a>
   <ul class="collapse">
-  <li><a href="#primary-trend-negative-binomial-regression" id="toc-primary-trend-negative-binomial-regression" class="nav-link" data-scroll-target="#primary-trend-negative-binomial-regression"><span class="header-section-number">5.0.1</span> Primary trend: Negative-Binomial regression</a></li>
-  <li><a href="#launch-period-sensitivity-1" id="toc-launch-period-sensitivity-1" class="nav-link" data-scroll-target="#launch-period-sensitivity-1"><span class="header-section-number">5.0.2</span> Launch-period sensitivity</a></li>
-  <li><a href="#robustness-checks" id="toc-robustness-checks" class="nav-link" data-scroll-target="#robustness-checks"><span class="header-section-number">5.0.3</span> Robustness checks</a></li>
-  <li><a href="#bayesian-robustness-check" id="toc-bayesian-robustness-check" class="nav-link" data-scroll-target="#bayesian-robustness-check"><span class="header-section-number">5.0.4</span> Bayesian robustness check</a></li>
-  <li><a href="#risk-curve-risk-matrix" id="toc-risk-curve-risk-matrix" class="nav-link" data-scroll-target="#risk-curve-risk-matrix"><span class="header-section-number">5.0.5</span> Risk curve &amp; risk matrix</a></li>
-  <li><a href="#spatial-pudo-risk" id="toc-spatial-pudo-risk" class="nav-link" data-scroll-target="#spatial-pudo-risk"><span class="header-section-number">5.0.6</span> Spatial PUDO risk</a></li>
+  <li><a href="#distributional-diagnostics-full-vs.-post-ramp" id="toc-distributional-diagnostics-full-vs.-post-ramp" class="nav-link" data-scroll-target="#distributional-diagnostics-full-vs.-post-ramp"><span class="header-section-number">5.0.1</span> Distributional diagnostics: full vs.&nbsp;post-ramp</a></li>
+  <li><a href="#primary-trend-negative-binomial-regression" id="toc-primary-trend-negative-binomial-regression" class="nav-link" data-scroll-target="#primary-trend-negative-binomial-regression"><span class="header-section-number">5.0.2</span> Primary trend: Negative-Binomial regression</a></li>
+  <li><a href="#launch-period-sensitivity-1" id="toc-launch-period-sensitivity-1" class="nav-link" data-scroll-target="#launch-period-sensitivity-1"><span class="header-section-number">5.0.3</span> Launch-period sensitivity</a></li>
+  <li><a href="#model-comparison-poisson-vs.-negative-binomial-full-vs.-post-ramp" id="toc-model-comparison-poisson-vs.-negative-binomial-full-vs.-post-ramp" class="nav-link" data-scroll-target="#model-comparison-poisson-vs.-negative-binomial-full-vs.-post-ramp"><span class="header-section-number">5.0.4</span> Model comparison: Poisson vs.&nbsp;Negative Binomial (full vs.&nbsp;post-ramp)</a></li>
+  <li><a href="#robustness-checks" id="toc-robustness-checks" class="nav-link" data-scroll-target="#robustness-checks"><span class="header-section-number">5.0.5</span> Robustness checks</a></li>
+  <li><a href="#bayesian-robustness-check" id="toc-bayesian-robustness-check" class="nav-link" data-scroll-target="#bayesian-robustness-check"><span class="header-section-number">5.0.6</span> Bayesian robustness check</a></li>
+  <li><a href="#is-the-latest-quarter-different" id="toc-is-the-latest-quarter-different" class="nav-link" data-scroll-target="#is-the-latest-quarter-different"><span class="header-section-number">5.0.7</span> Is the latest quarter different?</a></li>
+  <li><a href="#risk-curve-risk-matrix" id="toc-risk-curve-risk-matrix" class="nav-link" data-scroll-target="#risk-curve-risk-matrix"><span class="header-section-number">5.0.8</span> Risk curve &amp; risk matrix</a></li>
+  <li><a href="#spatial-pudo-risk" id="toc-spatial-pudo-risk" class="nav-link" data-scroll-target="#spatial-pudo-risk"><span class="header-section-number">5.0.9</span> Spatial PUDO risk</a></li>
   </ul></li>
   <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion"><span class="header-section-number">6</span> Discussion</a>
   <ul class="collapse">
@@ -302,6 +309,7 @@ window.Quarto = {
 <section id="the-problem" class="level3" data-number="1.1.1">
 <h3 data-number="1.1.1" class="anchored" data-anchor-id="the-problem"><span class="header-section-number">1.1.1</span> The Problem:</h3>
 <p>Autonomous-vehicle pick-up / drop-off (PUDO) maneuvers — the moments a driverless vehicle stops so a rider can get in or out — are a plausible source of curb-space conflict, minor collisions, and rider complaints. Whether that risk is growing, shrinking, or holding steady as a fleet scales is hard to answer from the public record: California Public Utilities Commission (CPUC) AV Deployment reports are large, redacted, and change format from quarter to quarter, so nobody has simply lined them up into a rate over time.</p>
+<p>Beyond Waymo specifically, PUDO-type friction is a useful early empirical signal for autonomous-vehicle deployment more broadly: as AV operations expand to new cities, road layouts, and weather conditions, understanding how curb-side risk behaves under a scaling single-carrier deployment is a natural first step. The rates found here, however, come from one carrier operating in California and should not be read as representative of AV operations generally (see Scope, below).</p>
 </section>
 <section id="contribution" class="level3" data-number="1.1.2">
 <h3 data-number="1.1.2" class="anchored" data-anchor-id="contribution"><span class="header-section-number">1.1.2</span> Contribution</h3>
@@ -416,8 +424,12 @@ Table&nbsp;1: The final hand-off dataset (<code>final_pudo_summary</code>): PUDO
 <section id="modeling" class="level2" data-number="4.2">
 <h2 data-number="4.2" class="anchored" data-anchor-id="modeling"><span class="header-section-number">4.2</span> Modeling</h2>
 <p>PUDO complaints were initially modeled using Poisson regression with the logarithm of trip exposure included as an offset. A variance-to-mean dispersion diagnostic (<a href="#eq-dispersion" class="quarto-xref">Equation&nbsp;3</a>) showed substantial overdispersion in the quarterly counts (<span class="math inline">\(\text{VMR} \approx 5.9\)</span>), violating the Poisson equidispersion assumption. Temporal trends were therefore estimated using <strong>Negative-Binomial regression</strong> with a log link and a trip-exposure offset as the primary model. Because only eight quarterly observations were available, the same model was additionally estimated in a <strong>Bayesian framework</strong> to more fully characterize parameter and dispersion uncertainty. The Poisson fit below is retained only as an initial diagnostic baseline — it is never reported as the trend result.</p>
-<section id="poisson-regression-initial-diagnostic-baseline" class="level3" data-number="4.2.1">
-<h3 data-number="4.2.1" class="anchored" data-anchor-id="poisson-regression-initial-diagnostic-baseline"><span class="header-section-number">4.2.1</span> Poisson regression (initial diagnostic baseline)</h3>
+<section id="distributional-diagnostics" class="level3" data-number="4.2.1">
+<h3 data-number="4.2.1" class="anchored" data-anchor-id="distributional-diagnostics"><span class="header-section-number">4.2.1</span> Distributional diagnostics</h3>
+<p>Before any count model is fit, the raw quarterly PUDO rate is characterized directly: histograms (mean/median annotated), normal Q-Q plots, and a Shapiro-Wilk test (<a href="#tbl-shapiro-rate" class="quarto-xref">Table&nbsp;5</a>; <span class="math inline">\(H_0\)</span>: the rate values are drawn from a normal distribution) are computed for both the full window and the post-ramp window introduced below. Two two-sample Kolmogorov-Smirnov (KS) comparisons are also run, but only where a real, adequately-sized empirical sample exists on both sides: the 2024 launch-quarter rates against the 2025–2026 rates (descriptive only — <span class="math inline">\(n=2\)</span> vs.&nbsp;<span class="math inline">\(n=6\)</span> is under-powered), and the monthly trip-exposure distributions for 2025 (<span class="math inline">\(n=12\)</span>) against 2026 (<span class="math inline">\(n=6\)</span>, partial year), which is the one case here where a two-sample KS test is genuinely well-powered. These diagnostics motivate, rather than assume, the choice of a count-model (Poisson/Negative-Binomial) framework over classic parametric mean-comparison tests for the complaint rate throughout the rest of this paper.</p>
+</section>
+<section id="poisson-regression-initial-diagnostic-baseline" class="level3" data-number="4.2.2">
+<h3 data-number="4.2.2" class="anchored" data-anchor-id="poisson-regression-initial-diagnostic-baseline"><span class="header-section-number">4.2.2</span> Poisson regression (initial diagnostic baseline)</h3>
 <p>The complaint count <span class="math inline">\(Y_t\)</span> in analysis quarter <span class="math inline">\(t = 0, \dots, 7\)</span> is first modeled as a Poisson process whose rate scales with exposure <span class="math inline">\(E_t\)</span> (trips, or VMT as a cross-check), with a log-linear time trend:</p>
 <p><span id="eq-poisson-glm"><span class="math display">\[
 Y_t \mid \mu_t \sim \text{Poisson}(\mu_t), \qquad
@@ -429,8 +441,8 @@ Y_t \mid \mu_t \sim \text{Poisson}(\mu_t), \qquad
 \text{\% change per quarter} = \big(e^{\beta_1} - 1\big) \times 100\%
 \tag{2}\]</span></span></p>
 </section>
-<section id="overdispersion-check" class="level3" data-number="4.2.2">
-<h3 data-number="4.2.2" class="anchored" data-anchor-id="overdispersion-check"><span class="header-section-number">4.2.2</span> Overdispersion check</h3>
+<section id="overdispersion-check" class="level3" data-number="4.2.3">
+<h3 data-number="4.2.3" class="anchored" data-anchor-id="overdispersion-check"><span class="header-section-number">4.2.3</span> Overdispersion check</h3>
 <p><a href="#eq-poisson-glm" class="quarto-xref">Equation&nbsp;1</a>’s defining assumption is <span class="math inline">\(\text{Var}(Y_t) = \mathbb{E}[Y_t]\)</span>. This is checked with the index of dispersion (variance-to-mean ratio, VMR) on the raw complaint counts across the <span class="math inline">\(n = 8\)</span> quarters:</p>
 <p><span id="eq-dispersion"><span class="math display">\[
 \text{VMR} = \frac{s^2}{\bar{y}}, \qquad
@@ -439,8 +451,8 @@ D = (n-1)\,\text{VMR} \;\sim\; \chi^2_{n-1} \ \text{ under } H_0 : \text{Poisson
 <p><span class="math inline">\(\text{VMR} \approx 1\)</span> is consistent with a pure Poisson process; <span class="math inline">\(\text{VMR}
 \gg 1\)</span> — the result found here (VMR ≈ 5.9) — rejects equidispersion, so the Poisson fit’s confidence interval and <span class="math inline">\(p\)</span>-value understate uncertainty and are not used for inference about the trend.</p>
 </section>
-<section id="negative-binomial-regression-primary-trend-model" class="level3" data-number="4.2.3">
-<h3 data-number="4.2.3" class="anchored" data-anchor-id="negative-binomial-regression-primary-trend-model"><span class="header-section-number">4.2.3</span> Negative-Binomial regression (primary trend model)</h3>
+<section id="negative-binomial-regression-primary-trend-model" class="level3" data-number="4.2.4">
+<h3 data-number="4.2.4" class="anchored" data-anchor-id="negative-binomial-regression-primary-trend-model"><span class="header-section-number">4.2.4</span> Negative-Binomial regression (primary trend model)</h3>
 <p>Because <a href="#eq-dispersion" class="quarto-xref">Equation&nbsp;3</a> rejects equidispersion, the trend is instead estimated with Negative-Binomial regression (the NB2 parametrization used by <code>statsmodels</code> <span class="citation" data-cites="statsmodels"><a href="#ref-statsmodels" role="doc-biblioref">[2]</a></span>), keeping the same log-linear mean structure and offset as <a href="#eq-poisson-glm" class="quarto-xref">Equation&nbsp;1</a>:</p>
 <p><span id="eq-nb2"><span class="math display">\[
 Y_t \mid \mu_t, \alpha \sim \text{NB}(\mu_t, \alpha), \qquad
@@ -449,17 +461,26 @@ Y_t \mid \mu_t, \alpha \sim \text{NB}(\mu_t, \alpha), \qquad
 \tag{4}\]</span></span></p>
 <p>with the dispersion parameter <span class="math inline">\(\alpha\)</span> estimated by maximum likelihood alongside <span class="math inline">\(\beta_0, \beta_1\)</span> (larger <span class="math inline">\(\alpha\)</span> means <em>more</em> overdispersion relative to Poisson under this parametrization). This is the paper’s <strong>primary frequentist trend model</strong>, reported with <span class="math inline">\(\beta_1\)</span>, its standard error, 95% confidence interval, <span class="math inline">\(p\)</span>-value, and the incidence rate ratio and percent change of <a href="#eq-pct-change" class="quarto-xref">Equation&nbsp;2</a>.</p>
 </section>
-<section id="launch-period-sensitivity" class="level3" data-number="4.2.4">
-<h3 data-number="4.2.4" class="anchored" data-anchor-id="launch-period-sensitivity"><span class="header-section-number">4.2.4</span> Launch-period sensitivity</h3>
-<p>2024 Q3–Q4 read as a deployment/launch ramp, with substantially higher exposure-adjusted rates than 2025 onward (<a href="#fig-trend-fit" class="quarto-xref">Figure&nbsp;2</a>). Rather than simply discarding those quarters, <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> is re-estimated — same model form, same trip-exposure offset — on two pre-registered windows to test whether they drive the full-period result:</p>
+<section id="model-comparison-diagnostics" class="level3" data-number="4.2.5">
+<h3 data-number="4.2.5" class="anchored" data-anchor-id="model-comparison-diagnostics"><span class="header-section-number">4.2.5</span> Model comparison diagnostics</h3>
+<p>The choice of Negative Binomial over Poisson (<a href="#eq-dispersion" class="quarto-xref">Equation&nbsp;3</a>) is re-verified with the standard model-comparison toolkit rather than relying on the dispersion test alone: log-likelihood, AIC, BIC, Pearson <span class="math inline">\(\chi^2/\text{df}\)</span>, and a discrete goodness-of-fit (GOF) test. Because neither model’s cumulative distribution function is continuous, a plain continuous-KS diagnostic does not apply directly; GOF is instead assessed via randomized probability- integral-transform (PIT) values — for each observation, drawing <span class="math inline">\(u \sim \text{Uniform}\big(F(y-1), F(y)\big)\)</span> under the fitted model’s CDF — pooled and Kolmogorov-Smirnov-tested against <span class="math inline">\(\text{Uniform}(0,1)\)</span>. This full comparison (<a href="#tbl-model-comparison" class="quarto-xref">Table&nbsp;8</a>) is run on <strong>both</strong> the full window and the post-ramp window, so the model choice is checked again on the smaller, more homogeneous 2025–2026 subset rather than carried over by default.</p>
+</section>
+<section id="potential-software-release-effect" class="level3" data-number="4.2.6">
+<h3 data-number="4.2.6" class="anchored" data-anchor-id="potential-software-release-effect"><span class="header-section-number">4.2.6</span> Potential software-release effect</h3>
+<p>The sharp reduction in PUDO complaint rates after the 2024 launch period temporally coincides with a major Waymo Driver software update. In a subsequent NHTSA recall filing, Waymo identified a new 5th-generation Automated Driving System (ADS) driverless software release dated November 7, 2024. Waymo reported that software improvements were deployed across the fleet through December 26, 2024, and that the release significantly reduced the likelihood of collisions with chains, gates, and similar roadway barriers <span class="citation" data-cites="nhtsa_waymo_25e034_2025"><a href="#ref-nhtsa_waymo_25e034_2025" role="doc-biblioref">[3]</a></span>. NHTSA’s recall acknowledgment independently identifies the November 7 release and confirms that all affected vehicles had received the updated ADS software by December 26, 2024 <span class="citation" data-cites="nhtsa_waymo_25e034_ack_2025"><a href="#ref-nhtsa_waymo_25e034_ack_2025" role="doc-biblioref">[4]</a></span>.</p>
+<p>Thus, 2025 Q1 is the first full analysis quarter following completion of this software deployment. The timing provides a plausible engineering hypothesis for a structural change in observed complaint rates; however, the documentation does not establish that the release specifically changed PUDO behavior or caused the observed decline. Treat this as a temporal association and candidate intervention, not causal evidence.</p>
+</section>
+<section id="launch-period-sensitivity" class="level3" data-number="4.2.7">
+<h3 data-number="4.2.7" class="anchored" data-anchor-id="launch-period-sensitivity"><span class="header-section-number">4.2.7</span> Launch-period sensitivity</h3>
+<p>2024 Q3–Q4 read as a deployment/launch ramp, with substantially higher exposure-adjusted rates than 2025 onward (<a href="#fig-trend-fit" class="quarto-xref">Figure&nbsp;8</a>). Rather than simply discarding those quarters, <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> is re-estimated — same model form, same trip-exposure offset — on two pre-registered windows to test whether they drive the full-period result:</p>
 <ul>
 <li><strong>A. Full period</strong> — 2024 Q3 – 2026 Q2 (<span class="math inline">\(n = 8\)</span>; the primary model above)</li>
 <li><strong>B. Post-ramp</strong> — 2025 Q1 – 2026 Q2 (<span class="math inline">\(n = 6\)</span>; excludes both 2024 quarters)</li>
 </ul>
 <p>Comparing <span class="math inline">\(\beta_1\)</span>, its confidence interval, and its <span class="math inline">\(p\)</span>-value across the two windows indicates whether the apparent decline is concentrated in the launch period or continues afterward. Given <span class="math inline">\(n = 8\)</span>, a simple two-window comparison is used rather than a piecewise or launch-indicator model, to avoid introducing more parameters than the data can support.</p>
 </section>
-<section id="exact-garwood-poisson-confidence-interval" class="level3" data-number="4.2.5">
-<h3 data-number="4.2.5" class="anchored" data-anchor-id="exact-garwood-poisson-confidence-interval"><span class="header-section-number">4.2.5</span> Exact (Garwood) Poisson confidence interval</h3>
+<section id="exact-garwood-poisson-confidence-interval" class="level3" data-number="4.2.8">
+<h3 data-number="4.2.8" class="anchored" data-anchor-id="exact-garwood-poisson-confidence-interval"><span class="header-section-number">4.2.8</span> Exact (Garwood) Poisson confidence interval</h3>
 <p>Uncertainty around each <strong>observed</strong> quarter’s count is reported with the exact Poisson interval rather than the normal/Wald approximation, so it stays valid at small or zero counts:</p>
 <p><span id="eq-exact-ci"><span class="math display">\[
 \text{CI}_{1-\alpha}(k) = \left[\tfrac{1}{2}\chi^2_{\alpha/2}(2k),\;\;
@@ -467,17 +488,17 @@ Y_t \mid \mu_t, \alpha \sim \text{NB}(\mu_t, \alpha), \qquad
 \tag{5}\]</span></span></p>
 <p>where <span class="math inline">\(\chi^2_{p}(\nu)\)</span> is the <span class="math inline">\(p\)</span>-quantile of a chi-square distribution with <span class="math inline">\(\nu\)</span> degrees of freedom, <span class="math inline">\(k\)</span> the observed complaint count, and <span class="math inline">\(E\)</span> the exposure (trips) for that quarter. This interval is <strong>descriptive</strong>: it summarizes uncertainty around one observed quarter’s count/rate. It is distinct from — and not a substitute for — <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a>’s <em>inferential</em> uncertainty about the trend across quarters; overlapping exact Poisson intervals between quarters do not, by themselves, establish that no trend exists.</p>
 </section>
-<section id="distribution-free-trend-check-robustness" class="level3" data-number="4.2.6">
-<h3 data-number="4.2.6" class="anchored" data-anchor-id="distribution-free-trend-check-robustness"><span class="header-section-number">4.2.6</span> Distribution-free trend check (robustness)</h3>
-<p>As a <strong>robustness check</strong> that assumes no particular count distribution — not a replacement for the primary Negative-Binomial fit — the Mann-Kendall trend test <span class="citation" data-cites="mann1945 kendall1975"><a href="#ref-mann1945" role="doc-biblioref">[3]</a>, <a href="#ref-kendall1975" role="doc-biblioref">[4]</a></span> computes Kendall’s <span class="math inline">\(\tau\)</span> between the quarter index and the per-quarter rate <span class="math inline">\(r_1, \dots, r_n\)</span> (chronological order):</p>
+<section id="distribution-free-trend-check-robustness" class="level3" data-number="4.2.9">
+<h3 data-number="4.2.9" class="anchored" data-anchor-id="distribution-free-trend-check-robustness"><span class="header-section-number">4.2.9</span> Distribution-free trend check (robustness)</h3>
+<p>As a <strong>robustness check</strong> that assumes no particular count distribution — not a replacement for the primary Negative-Binomial fit — the Mann-Kendall trend test <span class="citation" data-cites="mann1945 kendall1975"><a href="#ref-mann1945" role="doc-biblioref">[5]</a>, <a href="#ref-kendall1975" role="doc-biblioref">[6]</a></span> computes Kendall’s <span class="math inline">\(\tau\)</span> between the quarter index and the per-quarter rate <span class="math inline">\(r_1, \dots, r_n\)</span> (chronological order):</p>
 <p><span id="eq-kendall"><span class="math display">\[
 \tau = \frac{2}{n(n-1)} \sum_{i &lt; j} \text{sign}\big(r_j - r_i\big)
 \tag{6}\]</span></span></p>
 <p><span class="math inline">\(\tau &lt; 0\)</span> agrees with a declining trend; its <span class="math inline">\(p\)</span>-value is reported alongside, separately from the NB model’s.</p>
 </section>
-<section id="bayesian-negative-binomial-refit" class="level3" data-number="4.2.7">
-<h3 data-number="4.2.7" class="anchored" data-anchor-id="bayesian-negative-binomial-refit"><span class="header-section-number">4.2.7</span> Bayesian Negative-Binomial refit</h3>
-<p>Because only eight quarterly observations are available, <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> is additionally estimated in a Bayesian framework to more fully characterize parameter <em>and</em> dispersion uncertainty — the frequentist fit instead estimates <span class="math inline">\(\alpha\)</span> by maximum likelihood and then treats it as <em>known</em>, relying on a large-sample approximation that a sample this small may not support. The same likelihood and exposure structure as <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> is refit as a full posterior (PyMC <span class="citation" data-cites="pymc"><a href="#ref-pymc" role="doc-biblioref">[5]</a></span>, NUTS sampler) with weakly informative priors:</p>
+<section id="bayesian-negative-binomial-refit" class="level3" data-number="4.2.10">
+<h3 data-number="4.2.10" class="anchored" data-anchor-id="bayesian-negative-binomial-refit"><span class="header-section-number">4.2.10</span> Bayesian Negative-Binomial refit</h3>
+<p>Because only eight quarterly observations are available, <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> is additionally estimated in a Bayesian framework to more fully characterize parameter <em>and</em> dispersion uncertainty — the frequentist fit instead estimates <span class="math inline">\(\alpha\)</span> by maximum likelihood and then treats it as <em>known</em>, relying on a large-sample approximation that a sample this small may not support. The same likelihood and exposure structure as <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> is refit as a full posterior (PyMC <span class="citation" data-cites="pymc"><a href="#ref-pymc" role="doc-biblioref">[7]</a></span>, NUTS sampler) with weakly informative priors:</p>
 <p><span id="eq-bayes-nb"><span class="math display">\[
 \begin{aligned}
 \beta_0 &amp;\sim \mathcal{N}\!\big(\log(\bar{r}),\, 2^2\big) \\
@@ -494,8 +515,17 @@ P(\text{declining}) = P(\beta_1 &lt; 0 \mid y_{1:n})
 \tag{8}\]</span></span></p>
 <p>This Bayesian refit is reported as a robustness / small-sample analysis alongside the frequentist estimate, not as a claim that it fits the data better: no model-comparison criterion (e.g.&nbsp;WAIC/LOO) or posterior-predictive check is computed here, so no such claim is made.</p>
 </section>
-<section id="risk-matrix-probability-basis" class="level3" data-number="4.2.8">
-<h3 data-number="4.2.8" class="anchored" data-anchor-id="risk-matrix-probability-basis"><span class="header-section-number">4.2.8</span> Risk-matrix probability basis</h3>
+<section id="latest-quarter-contrast" class="level3" data-number="4.2.11">
+<h3 data-number="4.2.11" class="anchored" data-anchor-id="latest-quarter-contrast"><span class="header-section-number">4.2.11</span> Latest-quarter contrast</h3>
+<p>The main question this update adds is whether the <strong>most recent</strong> quarter differs from the rest of the post-ramp window, controlling for exposure. Complaints carry no time resolution finer than the reporting quarter (confirmed directly against the underlying data, not assumed), so the latest quarter is exactly one observation — comparing one observation against a handful of quarterly aggregates with a rank test (Mann-Whitney U) or a <span class="math inline">\(t\)</span>-test is not a valid two-sample test. Two regression-based contrasts are used instead, both fit on the post-ramp window:</p>
+<ol type="1">
+<li>A <strong>regime-indicator Negative-Binomial regression</strong>, <span class="math inline">\(Y_t \sim \text{NB}(\mu_t, \alpha)\)</span> with <span class="math inline">\(\log\mu_t = \log E_t + \beta_0 + \beta_{\text{latest}}\,\mathbb{1}[t = \text{latest}]\)</span>, testing <span class="math inline">\(H_0: \beta_{\text{latest}} = 0\)</span> via a Wald test, reported with its incidence rate ratio (effect size), 95% CI, and an approximate post-hoc power at the observed effect size (illustrative only, given <span class="math inline">\(n=6\)</span>).</li>
+<li>A <strong>leave-latest-out predictive check</strong>: <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> refit on the post-ramp quarters <em>preceding</em> the latest one, producing a predictive rate and 95% interval (delta method) for what the latest quarter should look like under the established recent pattern; the actually-observed rate is checked against that interval.</li>
+</ol>
+<p>The same regime-indicator model is additionally fit in the Bayesian framework of <a href="#eq-bayes-nb" class="quarto-xref">Equation&nbsp;7</a> (weakly informative priors, PyMC/NUTS), reporting the posterior probability the latest quarter’s rate is higher or lower than the rest of the post-ramp window, for comparison against the frequentist contrast.</p>
+</section>
+<section id="risk-matrix-probability-basis" class="level3" data-number="4.2.12">
+<h3 data-number="4.2.12" class="anchored" data-anchor-id="risk-matrix-probability-basis"><span class="header-section-number">4.2.12</span> Risk-matrix probability basis</h3>
 <p>To place the PUDO hazard on a probability × impact risk matrix, three ways of expressing “how likely is a PUDO event” are compared, holding the impact reading fixed. Let <span class="math inline">\(k = \sum_t y_t\)</span> be total complaints and <span class="math inline">\(N = \sum_t E_t\)</span> total trips over the window.</p>
 <p><strong>Per-period</strong> — the probability of at least one complaint in a reporting quarter, treating the mean quarterly count <span class="math inline">\(\bar\lambda = k/n\)</span> as a Poisson rate:</p>
 <p><span id="eq-prob-period"><span class="math display">\[
@@ -584,7 +614,18 @@ Table&nbsp;2: Per-quarter descriptive statistics for PUDO complaints, trips, and
 </div>
 </figure>
 </div>
-<p>The index-of-dispersion test (<a href="#eq-dispersion" class="quarto-xref">Equation&nbsp;3</a>) on these counts gives <span class="math inline">\(\text{VMR} \approx 5\)</span> (<span class="math inline">\(D \approx 41.5\)</span> against <span class="math inline">\(\chi^2_7\)</span>, <span class="math inline">\(p &lt; 0.001\)</span>), rejecting Poisson equidispersion — the reason every trend fit below uses the Negative-Binomial model of <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> rather than <a href="#eq-poisson-glm" class="quarto-xref">Equation&nbsp;1</a> directly. The per-quarter rates in <a href="#tbl-baseline" class="quarto-xref">Table&nbsp;3</a> and throughout use the exact interval of <a href="#eq-exact-ci" class="quarto-xref">Equation&nbsp;5</a>, not a normal approximation.</p>
+<p>That growth is not just quarter-to-quarter: <a href="#fig-trips-monthly-boxplot" class="quarto-xref">Figure&nbsp;1</a> shows the real within-quarter spread in monthly trip volume (median and interquartile range built from the underlying monthly observations, not a synthetic range from a single quarterly total). PUDO complaints have no equivalent view — every complaint record is dated only to its reporting quarter, not to a month within it — so only the exposure side of this analysis can be shown at this resolution.</p>
+<div id="fig-trips-monthly-boxplot" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-trips-monthly-boxplot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="assets/fig-trips-monthly-boxplot.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Within-quarter variability in trip exposure: monthly trips, median and IQR per analysis quarter."><img src="assets/fig-trips-monthly-boxplot.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-trips-monthly-boxplot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Within-quarter variability in trip exposure: monthly trips, median and IQR per analysis quarter.
+</figcaption>
+</figure>
+</div>
+<p>The index-of-dispersion test (<a href="#eq-dispersion" class="quarto-xref">Equation&nbsp;3</a>) on these counts gives <span class="math inline">\(\text{VMR} \approx 5.9\)</span> (<span class="math inline">\(D \approx 41.5\)</span> against <span class="math inline">\(\chi^2_7\)</span>, <span class="math inline">\(p &lt; 0.001\)</span>), rejecting Poisson equidispersion — the reason every trend fit below uses the Negative-Binomial model of <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> rather than <a href="#eq-poisson-glm" class="quarto-xref">Equation&nbsp;1</a> directly. The per-quarter rates in <a href="#tbl-baseline" class="quarto-xref">Table&nbsp;3</a> and throughout use the exact interval of <a href="#eq-exact-ci" class="quarto-xref">Equation&nbsp;5</a>, not a normal approximation.</p>
 <p>Pooling across all eight quarters gives the headline exposure-adjusted rate (<a href="#tbl-baseline" class="quarto-xref">Table&nbsp;3</a>): Over the study window Waymo averaged <strong>1.97</strong> PUDO complaints per 100,000 trips (exact Poisson 95% CI 1.78-2.16), from 417 complaints over 21.2M trips.</p>
 <div id="tbl-baseline" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -613,26 +654,192 @@ Table&nbsp;3: Pooled PUDO complaint rate over the study window (417 complaints, 
 </div>
 </figure>
 </div>
-<p>PUDO complaints are also worth reading in context of everything else riders report. <a href="#fig-pudo-share" class="quarto-xref">Figure&nbsp;1</a> stacks the PUDO count against every other reported complaint category, per quarter:</p>
+<p>PUDO complaints are also worth reading in context of everything else riders report. <a href="#fig-pudo-share" class="quarto-xref">Figure&nbsp;2</a> stacks the PUDO count against every other reported complaint category, per quarter:</p>
 <div id="fig-pudo-share" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-pudo-share-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="assets/fig-pudo-share.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: PUDO complaints against all other reported complaint categories, per quarter."><img src="assets/fig-pudo-share.png" class="img-fluid figure-img"></a>
+<a href="assets/fig-pudo-share.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: PUDO complaints against all other reported complaint categories, per quarter."><img src="assets/fig-pudo-share.png" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pudo-share-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: PUDO complaints against all other reported complaint categories, per quarter.
+Figure&nbsp;2: PUDO complaints against all other reported complaint categories, per quarter.
 </figcaption>
 </figure>
 </div>
 <p>PUDO complaints average <strong>13%</strong> of all reported complaint categories over the window (range 10%-17%), making PUDO the largest location/behaviour complaint category (Safety and ‘Other’ are larger overall categories, but are not location-specific).</p>
 <p>PUDO complaints scale with total complaint volume — the PUDO share stays in a fairly narrow band rather than drifting — so PUDO is not a shrinking or growing slice of the overall complaint mix; it is consistently the largest category tied to a specific vehicle maneuver rather than a general safety or “other” catch-all.</p>
-<section id="primary-trend-negative-binomial-regression" class="level3" data-number="5.0.1">
-<h3 data-number="5.0.1" class="anchored" data-anchor-id="primary-trend-negative-binomial-regression"><span class="header-section-number">5.0.1</span> Primary trend: Negative-Binomial regression</h3>
-<p>The primary trend model — <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> fit on trips exposure — gives (<a href="#tbl-nb-primary" class="quarto-xref">Table&nbsp;4</a>): The primary trend model is Negative-Binomial regression (<code>pudo_complaints ~ t</code>, <code>offset = log(trips)</code>): beta_t = -0.114 (SE 0.042, 95% CI [-0.196, -0.032]), an incidence rate ratio of 0.893 per quarter – a <strong>-10.7%</strong> change in the PUDO complaint rate per quarter (95% CI -17.8% to -3.1%, p = 0.007; total change -55% across the window).</p>
+<section id="distributional-diagnostics-full-vs.-post-ramp" class="level3" data-number="5.0.1">
+<h3 data-number="5.0.1" class="anchored" data-anchor-id="distributional-diagnostics-full-vs.-post-ramp"><span class="header-section-number">5.0.1</span> Distributional diagnostics: full vs.&nbsp;post-ramp</h3>
+<p>The same per-quarter statistics are also computed for the post-ramp window (2025 Q1 – 2026 Q2, <span class="math inline">\(n=6\)</span>) used throughout the Launch-period sensitivity and Latest-quarter results below:</p>
+<div id="tbl-summary-stats-post-ramp" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-summary-stats-post-ramp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;4: Per-quarter descriptive statistics for PUDO complaints, trips, and the PUDO-per-100k-trips rate, post-ramp window (2025 Q1 - 2026 Q2, n = 6).
+</figcaption>
+<div aria-describedby="tbl-summary-stats-post-ramp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 29%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 9%">
+<col style="width: 11%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 9%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>variable</th>
+<th>mean</th>
+<th>std</th>
+<th>min</th>
+<th>median</th>
+<th>max</th>
+<th>range</th>
+<th>CV</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>PUDO complaints</td>
+<td>54.167</td>
+<td>20.054</td>
+<td>27.0</td>
+<td>54.0</td>
+<td>79.0</td>
+<td>52.0</td>
+<td>0.37</td>
+</tr>
+<tr class="even">
+<td>trips (M)</td>
+<td>3.101</td>
+<td>0.99</td>
+<td>1.818</td>
+<td>3.212</td>
+<td>4.22</td>
+<td>2.402</td>
+<td>0.319</td>
+</tr>
+<tr class="odd">
+<td>rate /100k trips</td>
+<td>1.722</td>
+<td>0.161</td>
+<td>1.485</td>
+<td>1.764</td>
+<td>1.879</td>
+<td>0.394</td>
+<td>0.094</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p><a href="#fig-rate-histograms" class="quarto-xref">Figure&nbsp;3</a> and <a href="#fig-rate-qq" class="quarto-xref">Figure&nbsp;4</a> show the quarterly PUDO rate’s distribution in both windows; <a href="#tbl-shapiro-rate" class="quarto-xref">Table&nbsp;5</a> reports the Shapiro-Wilk normality test for each (<span class="math inline">\(H_0\)</span>: the rate values are normally distributed): Shapiro-Wilk test for normality on the quarterly PUDO rate: Full: W=0.639, p=0.001 (REJECT normality); Post-ramp: W=0.883, p=0.282 (fail to reject normality).</p>
+<div id="tbl-shapiro-rate" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-shapiro-rate-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;5: Shapiro-Wilk normality test on the quarterly PUDO rate, full vs.&nbsp;post-ramp window.
+</figcaption>
+<div aria-describedby="tbl-shapiro-rate-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 44%">
+<col style="width: 1%">
+<col style="width: 7%">
+<col style="width: 10%">
+<col style="width: 35%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>window</th>
+<th>n</th>
+<th>W</th>
+<th>p-value</th>
+<th>verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Full (n=8, 2024Q3-2026Q2)</td>
+<td>8</td>
+<td>0.639</td>
+<td>0.0005</td>
+<td>REJECT normality</td>
+</tr>
+<tr class="even">
+<td>Post-ramp (n=6, 2025Q1-2026Q2)</td>
+<td>6</td>
+<td>0.883</td>
+<td>0.2818</td>
+<td>fail to reject normality</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div id="fig-rate-histograms" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rate-histograms-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="assets/fig-rate-histograms.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Quarterly PUDO rate distribution, full vs.&nbsp;post-ramp window."><img src="assets/fig-rate-histograms.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rate-histograms-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Quarterly PUDO rate distribution, full vs.&nbsp;post-ramp window.
+</figcaption>
+</figure>
+</div>
+<div id="fig-rate-qq" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rate-qq-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="assets/fig-rate-qq.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Normal Q-Q plots: quarterly PUDO rate, full vs.&nbsp;post-ramp window."><img src="assets/fig-rate-qq.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rate-qq-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Normal Q-Q plots: quarterly PUDO rate, full vs.&nbsp;post-ramp window.
+</figcaption>
+</figure>
+</div>
+<p>With <span class="math inline">\(n=6\)</span>–<span class="math inline">\(8\)</span> and, in the full window, a single extreme launch-period outlier (2024 Q3), this is exactly why classic parametric mean-comparison tests are not used anywhere in this paper for the complaint rate — every trend and contrast in this paper instead models the rate through the count-model (Poisson/Negative-Binomial) framework, which treats the data as counts over exposure rather than assuming the rate itself is Gaussian.</p>
+<p><a href="#fig-rate-ks" class="quarto-xref">Figure&nbsp;5</a> compares the empirical CDFs of the 2024 launch-quarter rates against the 2025–2026 rates directly; with <span class="math inline">\(n=2\)</span> against <span class="math inline">\(n=6\)</span> this two-sample KS comparison is descriptive only, not a well-powered test.</p>
+<div id="fig-rate-ks" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rate-ks-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="assets/fig-rate-ks.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;5: Empirical CDFs: 2024 launch-quarter PUDO rate vs.&nbsp;2025–2026 PUDO rate (descriptive; n too small for a reliable p-value)."><img src="assets/fig-rate-ks.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rate-ks-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Empirical CDFs: 2024 launch-quarter PUDO rate vs.&nbsp;2025–2026 PUDO rate (descriptive; <span class="math inline">\(n\)</span> too small for a reliable <span class="math inline">\(p\)</span>-value).
+</figcaption>
+</figure>
+</div>
+<p>A better-powered two-sample KS comparison is available for monthly trip exposure, where 2025 and 2026 each contribute a real per-month sample (<span class="math inline">\(n=12\)</span> and <span class="math inline">\(n=6\)</span>). <a href="#fig-trips-qq" class="quarto-xref">Figure&nbsp;6</a> and <a href="#fig-trips-ks" class="quarto-xref">Figure&nbsp;7</a> show the Q-Q plots and empirical CDFs used to check the normality assumption behind a companion Welch two-sample <span class="math inline">\(t\)</span>-test comparing monthly 2025 and 2026 trip volumes directly (reported in the companion notebook) — a check on trip <em>volume</em> growth, distinct from the exposure-adjusted complaint-rate contrast in “Is the latest quarter different?” below.</p>
+<div id="fig-trips-qq" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-trips-qq-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="assets/fig-trips-qq.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;6: Normal Q-Q plots: monthly trips, 2025 vs.&nbsp;2026."><img src="assets/fig-trips-qq.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-trips-qq-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: Normal Q-Q plots: monthly trips, 2025 vs.&nbsp;2026.
+</figcaption>
+</figure>
+</div>
+<div id="fig-trips-ks" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-trips-ks-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="assets/fig-trips-ks.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;7: Empirical CDFs: monthly trips, 2025 vs.&nbsp;2026."><img src="assets/fig-trips-ks.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-trips-ks-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7: Empirical CDFs: monthly trips, 2025 vs.&nbsp;2026.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="primary-trend-negative-binomial-regression" class="level3" data-number="5.0.2">
+<h3 data-number="5.0.2" class="anchored" data-anchor-id="primary-trend-negative-binomial-regression"><span class="header-section-number">5.0.2</span> Primary trend: Negative-Binomial regression</h3>
+<p>The primary trend model — <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> fit on trips exposure — gives (<a href="#tbl-nb-primary" class="quarto-xref">Table&nbsp;6</a>): The primary trend model is Negative-Binomial regression (<code>pudo_complaints ~ t</code>, <code>offset = log(trips)</code>): beta_t = -0.114 (SE 0.042, 95% CI [-0.196, -0.032]), an incidence rate ratio of 0.893 per quarter – a <strong>-10.7%</strong> change in the PUDO complaint rate per quarter (95% CI -17.8% to -3.1%, p = 0.007; total change -55% across the window).</p>
 <div id="tbl-nb-primary" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-nb-primary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;4: Primary Negative-Binomial trend model (pudo_complaints ~ t, offset = log(trips)): coefficient, standard error, confidence interval, incidence rate ratio, and percent change per quarter.
+Table&nbsp;6: Primary Negative-Binomial trend model (pudo_complaints ~ t, offset = log(trips)): coefficient, standard error, confidence interval, incidence rate ratio, and percent change per quarter.
 </figcaption>
 <div aria-describedby="tbl-nb-primary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -674,26 +881,26 @@ Table&nbsp;4: Primary Negative-Binomial trend model (pudo_complaints ~ t, offset
 </div>
 </figure>
 </div>
-<p>In plain language: each additional quarter multiplies the expected PUDO complaint rate per trip by the incidence rate ratio (IRR) in <a href="#tbl-nb-primary" class="quarto-xref">Table&nbsp;4</a>, holding exposure fixed. The Poisson diagnostic fit (<a href="#eq-poisson-glm" class="quarto-xref">Equation&nbsp;1</a>) is not reported here as an inferential result — it assumes equidispersion, which <a href="#eq-dispersion" class="quarto-xref">Equation&nbsp;3</a> rejects.</p>
+<p>In plain language: each additional quarter multiplies the expected PUDO complaint rate per trip by the incidence rate ratio (IRR) in <a href="#tbl-nb-primary" class="quarto-xref">Table&nbsp;6</a>, holding exposure fixed. The Poisson diagnostic fit (<a href="#eq-poisson-glm" class="quarto-xref">Equation&nbsp;1</a>) is not reported here as an inferential result — it assumes equidispersion, which <a href="#eq-dispersion" class="quarto-xref">Equation&nbsp;3</a> rejects.</p>
 <div id="fig-trend-fit" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-trend-fit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="assets/fig-trend-fit.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Observed PUDO complaint rate per 100k trips (exact Poisson 95% CI, a descriptive interval around each observed quarter) against the Negative- Binomial fitted trend and its own 95% model-based confidence band."><img src="assets/fig-trend-fit.png" class="img-fluid figure-img"></a>
+<a href="assets/fig-trend-fit.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure&nbsp;8: Observed PUDO complaint rate per 100k trips (exact Poisson 95% CI, a descriptive interval around each observed quarter) against the Negative- Binomial fitted trend and its own 95% model-based confidence band."><img src="assets/fig-trend-fit.png" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-trend-fit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: Observed PUDO complaint rate per 100k trips (exact Poisson 95% CI, a descriptive interval around each observed quarter) against the Negative- Binomial fitted trend and its own 95% model-based confidence band.
+Figure&nbsp;8: Observed PUDO complaint rate per 100k trips (exact Poisson 95% CI, a descriptive interval around each observed quarter) against the Negative- Binomial fitted trend and its own 95% model-based confidence band.
 </figcaption>
 </figure>
 </div>
-<p><a href="#fig-trend-fit" class="quarto-xref">Figure&nbsp;2</a> keeps the two kinds of uncertainty visually distinct: the blue error bars are <a href="#eq-exact-ci" class="quarto-xref">Equation&nbsp;5</a>, describing each observed quarter’s count; the red band is the NB regression’s uncertainty about the <em>trend line</em> itself. The two 2024 quarters sit well above the rest of the series and above the fitted line’s lower band — a sharp drop from a launch-period high, followed by a rate that moves within a fairly narrow range for the remaining six quarters. The overlapping bars from 2025 onward describe individual quarters and are not by themselves evidence for or against a trend; that question is addressed directly below.</p>
+<p><a href="#fig-trend-fit" class="quarto-xref">Figure&nbsp;8</a> keeps the two kinds of uncertainty visually distinct: the blue error bars are <a href="#eq-exact-ci" class="quarto-xref">Equation&nbsp;5</a>, describing each observed quarter’s count; the red band is the NB regression’s uncertainty about the <em>trend line</em> itself. The two 2024 quarters sit well above the rest of the series and above the fitted line’s lower band — a sharp drop from a launch-period high, followed by a rate that moves within a fairly narrow range for the remaining six quarters. The overlapping bars from 2025 onward describe individual quarters and are not by themselves evidence for or against a trend; that question is addressed directly below.</p>
 </section>
-<section id="launch-period-sensitivity-1" class="level3" data-number="5.0.2">
-<h3 data-number="5.0.2" class="anchored" data-anchor-id="launch-period-sensitivity-1"><span class="header-section-number">5.0.2</span> Launch-period sensitivity</h3>
-<p>Restricting the identical NB model to the post-ramp window tests whether the full-period decline is concentrated in the 2024 launch quarters (<a href="#tbl-launch-sensitivity" class="quarto-xref">Table&nbsp;5</a>): Restricting the primary Negative-Binomial model to the post-ramp window (2025 Q1 - 2026 Q2, n = 6) gives a slope of <strong>+2.9%</strong> per quarter (95% CI -3.8% to +10.2%, p = 0.402), versus <strong>-10.7%</strong> per quarter (p = 0.007) over the full study period. The apparent decline over the full study period appears to be driven substantially by the elevated rates observed during the 2024 launch period: once those two quarters are excluded, the remaining six quarters show a much weaker, no-longer-significant trend. Rates from 2025 onward appear comparatively stable. This is consistent with a launch/ramp-period effect rather than a continuing decline, though it does not establish causation.</p>
+<section id="launch-period-sensitivity-1" class="level3" data-number="5.0.3">
+<h3 data-number="5.0.3" class="anchored" data-anchor-id="launch-period-sensitivity-1"><span class="header-section-number">5.0.3</span> Launch-period sensitivity</h3>
+<p>Restricting the identical NB model to the post-ramp window tests whether the full-period decline is concentrated in the 2024 launch quarters (<a href="#tbl-launch-sensitivity" class="quarto-xref">Table&nbsp;7</a>): Restricting the primary Negative-Binomial model to the post-ramp window (2025 Q1 - 2026 Q2, n = 6) gives a slope of <strong>+2.9%</strong> per quarter (95% CI -3.8% to +10.2%, p = 0.402), versus <strong>-10.7%</strong> per quarter (p = 0.007) over the full study period. The apparent decline over the full study period appears to be driven substantially by the elevated rates observed during the 2024 launch period: once those two quarters are excluded, the remaining six quarters show a much weaker, no-longer-significant trend. Rates from 2025 onward appear comparatively stable. This is consistent with a launch/ramp-period effect rather than a continuing decline, though it does not establish causation.</p>
 <div id="tbl-launch-sensitivity" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-launch-sensitivity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;5: Negative-Binomial trend sensitivity: full study period vs.&nbsp;the post-ramp window excluding both 2024 launch-period quarters.
+Table&nbsp;7: Negative-Binomial trend sensitivity: full study period vs.&nbsp;the post-ramp window excluding both 2024 launch-period quarters.
 </figcaption>
 <div aria-describedby="tbl-launch-sensitivity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -747,13 +954,115 @@ Table&nbsp;5: Negative-Binomial trend sensitivity: full study period vs.&nbsp;th
 </div>
 <p>The post-ramp slope is close to zero and not statistically significant on its own, in contrast to the full-period estimate. The apparent decline over the full study period appears to be driven substantially by the elevated rates observed during the 2024 launch period, while rates from 2025 onward appear comparatively stable — consistent with a launch/ramp-period effect rather than a continuing decline, though this does not establish causation.</p>
 </section>
-<section id="robustness-checks" class="level3" data-number="5.0.3">
-<h3 data-number="5.0.3" class="anchored" data-anchor-id="robustness-checks"><span class="header-section-number">5.0.3</span> Robustness checks</h3>
-<p>Refitting <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> under the VMT-total cross-check gives the same direction as the primary trips-based fit, and Kendall’s <span class="math inline">\(\tau\)</span> (<a href="#eq-kendall" class="quarto-xref">Equation&nbsp;6</a>) — a distribution-free check, not an alternative primary model — agrees in sign under both denominators (<a href="#tbl-trend" class="quarto-xref">Table&nbsp;6</a>): The primary Negative-Binomial trend is negative under all 2 exposure denominators tested (per-quarter change -13% to -11%; NB p 0.001-0.007). Mann-Kendall’s tau, a distribution-free robustness check, is negative under both denominators as well, though only marginally significant (p 0.40-0.55) given the non-monotone, fell-then-flat shape of the series.</p>
+<section id="model-comparison-poisson-vs.-negative-binomial-full-vs.-post-ramp" class="level3" data-number="5.0.4">
+<h3 data-number="5.0.4" class="anchored" data-anchor-id="model-comparison-poisson-vs.-negative-binomial-full-vs.-post-ramp"><span class="header-section-number">5.0.4</span> Model comparison: Poisson vs.&nbsp;Negative Binomial (full vs.&nbsp;post-ramp)</h3>
+<p>Section 1’s dispersion-test-only justification for Negative Binomial (<a href="#eq-dispersion" class="quarto-xref">Equation&nbsp;3</a>) is checked again here with the fuller model-comparison toolkit described in Methods, on <strong>both</strong> windows (<a href="#tbl-model-comparison" class="quarto-xref">Table&nbsp;8</a>): Re-verifying (not assuming) the Poisson-vs-Negative-Binomial choice with the full comparison toolkit (log-likelihood, AIC, BIC, Pearson dispersion, discrete goodness-of-fit): Full (n=8): lowest AIC/BIC -&gt; Neg. binomial; Post-ramp (n=6): lowest AIC/BIC -&gt; Poisson.</p>
+<div id="tbl-model-comparison" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-model-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;8: Poisson vs.&nbsp;Negative-Binomial model comparison (log-likelihood, AIC, BIC, Pearson dispersion, discrete GOF KS test), full vs.&nbsp;post-ramp window.
+</figcaption>
+<div aria-describedby="tbl-model-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 17%">
+<col style="width: 1%">
+<col style="width: 1%">
+<col style="width: 8%">
+<col style="width: 6%">
+<col style="width: 6%">
+<col style="width: 20%">
+<col style="width: 8%">
+<col style="width: 8%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>window</th>
+<th>model</th>
+<th>n</th>
+<th>k</th>
+<th>llf</th>
+<th>AIC</th>
+<th>BIC</th>
+<th>pearson_chi2_df</th>
+<th>KS_D</th>
+<th>KS_p</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Full (n=8)</td>
+<td>Poisson</td>
+<td>8</td>
+<td>2</td>
+<td>-37.12</td>
+<td>78.23</td>
+<td>78.39</td>
+<td>5.15</td>
+<td>0.2378</td>
+<td>0.6723</td>
+</tr>
+<tr class="even">
+<td>Full (n=8)</td>
+<td>Neg. binomial</td>
+<td>8</td>
+<td>3</td>
+<td>-32.92</td>
+<td>71.85</td>
+<td>72.09</td>
+<td>5.03</td>
+<td>0.1395</td>
+<td>0.9908</td>
+</tr>
+<tr class="odd">
+<td>Post-ramp (n=6)</td>
+<td>Poisson</td>
+<td>6</td>
+<td>2</td>
+<td>-17.88</td>
+<td>39.76</td>
+<td>39.34</td>
+<td>0.29</td>
+<td>0.2901</td>
+<td>0.5979</td>
+</tr>
+<tr class="even">
+<td>Post-ramp (n=6)</td>
+<td>Neg. binomial</td>
+<td>6</td>
+<td>3</td>
+<td>-17.88</td>
+<td>41.76</td>
+<td>41.14</td>
+<td>0.29</td>
+<td>0.2901</td>
+<td>0.5978</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div id="fig-residual-diagnostics" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-residual-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="assets/fig-residual-diagnostics.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Figure&nbsp;9: Residual diagnostics: Pearson residuals vs.&nbsp;fitted mean, for each model/window combination."><img src="assets/fig-residual-diagnostics.png" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-residual-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9: Residual diagnostics: Pearson residuals vs.&nbsp;fitted mean, for each model/window combination.
+</figcaption>
+</figure>
+</div>
+<p>The result is not assumed to carry over unchanged: the post-ramp window is smaller and — per the Pearson <span class="math inline">\(\chi^2/\text{df}\)</span> column — far less overdispersed than the full window, since it excludes the volatile 2024 launch quarters. When a window shows little real overdispersion, Negative Binomial’s extra dispersion parameter earns its AIC/BIC complexity penalty less easily than in the full window; <a href="#tbl-model-comparison" class="quarto-xref">Table&nbsp;8</a> reports whichever model actually wins in each case, rather than carrying the full-window conclusion over by assumption. <a href="#fig-residual-diagnostics" class="quarto-xref">Figure&nbsp;9</a> shows no systematic pattern in the Pearson residuals for either model in either window. Either way, the discrete GOF test finds no strong evidence against either model’s fit in either window at this sample size.</p>
+</section>
+<section id="robustness-checks" class="level3" data-number="5.0.5">
+<h3 data-number="5.0.5" class="anchored" data-anchor-id="robustness-checks"><span class="header-section-number">5.0.5</span> Robustness checks</h3>
+<p>Refitting <a href="#eq-nb2" class="quarto-xref">Equation&nbsp;4</a> under the VMT-total cross-check gives the same direction as the primary trips-based fit, and Kendall’s <span class="math inline">\(\tau\)</span> (<a href="#eq-kendall" class="quarto-xref">Equation&nbsp;6</a>) — a distribution-free check, not an alternative primary model — agrees in sign under both denominators (<a href="#tbl-trend" class="quarto-xref">Table&nbsp;9</a>): The primary Negative-Binomial trend is negative under all 2 exposure denominators tested (per-quarter change -13% to -11%; NB p 0.001-0.007). Mann-Kendall’s tau, a distribution-free robustness check, is negative under both denominators as well, though only marginally significant (p 0.40-0.55) given the non-monotone, fell-then-flat shape of the series.</p>
 <div id="tbl-trend" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-trend-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;6: Primary Negative-Binomial trend fit and Mann-Kendall robustness check under every exposure denominator.
+Table&nbsp;9: Primary Negative-Binomial trend fit and Mann-Kendall robustness check under every exposure denominator.
 </figcaption>
 <div aria-describedby="tbl-trend-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -815,13 +1124,13 @@ Table&nbsp;6: Primary Negative-Binomial trend fit and Mann-Kendall robustness ch
 </div>
 <p>Mann-Kendall’s weaker significance reflects the non-monotone, fell-then-flat shape of the series (limited power for a monotone-rank test on <span class="math inline">\(n = 8\)</span>), not evidence that the trend is absent.</p>
 </section>
-<section id="bayesian-robustness-check" class="level3" data-number="5.0.4">
-<h3 data-number="5.0.4" class="anchored" data-anchor-id="bayesian-robustness-check"><span class="header-section-number">5.0.4</span> Bayesian robustness check</h3>
-<p>The Bayesian refit (<a href="#eq-bayes-nb" class="quarto-xref">Equation&nbsp;7</a>, <a href="#tbl-bayes-nb" class="quarto-xref">Table&nbsp;7</a>) is reported alongside the primary frequentist estimate as a small-sample robustness check — not a claim that it fits the data better — and reports <a href="#eq-p-declining" class="quarto-xref">Equation&nbsp;8</a> directly rather than a <span class="math inline">\(p\)</span>-value: A Bayesian Negative-Binomial fit (weakly informative priors, PyMC/NUTS, 4 chains x 2000 draws, 0 divergences, max R-hat 1.00) gives a posterior median slope of <strong>-10.9%</strong> per quarter (95% credible interval [-25.2%, +7.6%]) and <strong>P(the rate is declining) = 90%</strong> – consistent with, but appropriately less certain than, the frequentist p = 0.007.</p>
+<section id="bayesian-robustness-check" class="level3" data-number="5.0.6">
+<h3 data-number="5.0.6" class="anchored" data-anchor-id="bayesian-robustness-check"><span class="header-section-number">5.0.6</span> Bayesian robustness check</h3>
+<p>The Bayesian refit (<a href="#eq-bayes-nb" class="quarto-xref">Equation&nbsp;7</a>, <a href="#tbl-bayes-nb" class="quarto-xref">Table&nbsp;10</a>) is reported alongside the primary frequentist estimate as a small-sample robustness check — not a claim that it fits the data better — and reports <a href="#eq-p-declining" class="quarto-xref">Equation&nbsp;8</a> directly rather than a <span class="math inline">\(p\)</span>-value: A Bayesian Negative-Binomial fit (weakly informative priors, PyMC/NUTS, 4 chains x 2000 draws, 0 divergences, max R-hat 1.00) gives a posterior median slope of <strong>-10.9%</strong> per quarter (95% credible interval [-25.2%, +7.6%]) and <strong>P(the rate is declining) = 90%</strong> – consistent with, but appropriately less certain than, the frequentist p = 0.007.</p>
 <div id="tbl-bayes-nb" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-bayes-nb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;7: Bayesian Negative-Binomial trend model posterior summary (PyMC/NUTS, 4 chains x 2000 draws, 0 divergences).
+Table&nbsp;10: Bayesian Negative-Binomial trend model posterior summary (PyMC/NUTS, 4 chains x 2000 draws, 0 divergences).
 </figcaption>
 <div aria-describedby="tbl-bayes-nb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -881,18 +1190,18 @@ Table&nbsp;7: Bayesian Negative-Binomial trend model posterior summary (PyMC/NUT
 <div id="fig-bayes-trend" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-bayes-trend-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="assets/fig-bayes-trend.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Bayesian Negative-Binomial posterior on the per-quarter rate change, vs.&nbsp;the frequentist point estimate and 95% CI."><img src="assets/fig-bayes-trend.png" class="img-fluid figure-img"></a>
+<a href="assets/fig-bayes-trend.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10" title="Figure&nbsp;10: Bayesian Negative-Binomial posterior on the per-quarter rate change, vs.&nbsp;the frequentist point estimate and 95% CI."><img src="assets/fig-bayes-trend.png" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bayes-trend-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: Bayesian Negative-Binomial posterior on the per-quarter rate change, vs.&nbsp;the frequentist point estimate and 95% CI.
+Figure&nbsp;10: Bayesian Negative-Binomial posterior on the per-quarter rate change, vs.&nbsp;the frequentist point estimate and 95% CI.
 </figcaption>
 </figure>
 </div>
-<p>The posterior barely shifts across a 4× range of prior width on the slope (<a href="#tbl-bayes-prior-sensitivity" class="quarto-xref">Table&nbsp;8</a>) — the conclusion is driven by the data, not the choice of prior:</p>
+<p>The posterior barely shifts across a 4× range of prior width on the slope (<a href="#tbl-bayes-prior-sensitivity" class="quarto-xref">Table&nbsp;11</a>) — the conclusion is driven by the data, not the choice of prior:</p>
 <div id="tbl-bayes-prior-sensitivity" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-bayes-prior-sensitivity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;8: Bayesian NB posterior sensitivity to the prior width on the trend slope.
+Table&nbsp;11: Bayesian NB posterior sensitivity to the prior width on the trend slope.
 </figcaption>
 <div aria-describedby="tbl-bayes-prior-sensitivity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -925,24 +1234,146 @@ Table&nbsp;8: Bayesian NB posterior sensitivity to the prior width on the trend 
 </figure>
 </div>
 </section>
-<section id="risk-curve-risk-matrix" class="level3" data-number="5.0.5">
-<h3 data-number="5.0.5" class="anchored" data-anchor-id="risk-curve-risk-matrix"><span class="header-section-number">5.0.5</span> Risk curve &amp; risk matrix</h3>
-<p>Where the trend result above answers <em>how the frequency is changing</em>, this subsection places PUDO risk on a probability × impact matrix — the risk-assessment framework this paper’s core question ultimately serves. The consequence side of that placement is read off a risk curve: how the event rate falls as severity rises (<a href="#fig-risk-curve" class="quarto-xref">Figure&nbsp;4</a>). Nothing severe or fatal was observed at the PUDO level over the window.</p>
+<section id="is-the-latest-quarter-different" class="level3" data-number="5.0.7">
+<h3 data-number="5.0.7" class="anchored" data-anchor-id="is-the-latest-quarter-different"><span class="header-section-number">5.0.7</span> Is the latest quarter different?</h3>
+<p>This update’s main question: controlling for trip exposure, does the most recent quarter look different from the rest of the post-ramp window? As established in Methods, complaints have no time resolution finer than the reporting quarter, so the latest quarter is exactly one observation and a rank test (Mann-Whitney U) or <span class="math inline">\(t\)</span>-test comparing it against a handful of quarterly aggregates would not be a valid two-sample test — the two regression-based contrasts of the Latest-quarter contrast methods section are used instead (<a href="#tbl-latest-quarter" class="quarto-xref">Table&nbsp;12</a>): The regime-indicator contrast (Poisson GLM, since NB’s alpha converged to the Poisson boundary) finds the 2026Q2 PUDO rate does not differ significantly from the rest of the post-ramp window (IRR 1.095, 95% CI [0.849, 1.410], p = 0.485). The leave-latest-out predictive check finds the observed rate (1.872/100k trips) falls <strong>within</strong> the 95% predictive interval built from the preceding quarters ([1.391, 2.376]) – no evidence of departure from the recent stable pattern.</p>
+<div id="tbl-latest-quarter" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-latest-quarter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;12: Is the latest available quarter different from the preceding post-ramp quarters? Regime-indicator NB regression and leave-latest-out predictive check.
+</figcaption>
+<div aria-describedby="tbl-latest-quarter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 6%">
+<col style="width: 3%">
+<col style="width: 3%">
+<col style="width: 4%">
+<col style="width: 3%">
+<col style="width: 8%">
+<col style="width: 7%">
+<col style="width: 21%">
+<col style="width: 9%">
+<col style="width: 7%">
+<col style="width: 15%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>latest quarter</th>
+<th>beta_latest</th>
+<th>SE</th>
+<th>z</th>
+<th>p-value</th>
+<th>IRR</th>
+<th>95% CI (IRR)</th>
+<th>approx. power</th>
+<th>predicted rate (preceding-only fit)</th>
+<th>predicted 95% CI</th>
+<th>observed rate</th>
+<th>within predictive interval</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>2026Q2</td>
+<td>0.0904</td>
+<td>0.1293</td>
+<td>0.699</td>
+<td>0.4848</td>
+<td>1.095</td>
+<td>[0.849, 1.410]</td>
+<td>0.1</td>
+<td>1.818</td>
+<td>[1.391, 2.376]</td>
+<td>1.872</td>
+<td>True</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>The regime-indicator contrast’s effect size and confidence interval, and the leave-latest-out predictive check’s interval, both come from a six-quarter window — enough to rule out only a large shift, not a small one (see Limitations). The Bayesian regime-indicator fit (<a href="#tbl-bayes-latest-quarter" class="quarto-xref">Table&nbsp;13</a>) reaches the same qualitative reading with an explicit posterior probability rather than a <span class="math inline">\(p\)</span>-value: A Bayesian regime-indicator NB fit on the post-ramp window gives a posterior median IRR of <strong>1.124</strong> for 2026Q2 vs.&nbsp;the rest (95% credible interval [0.405, 3.842]), with P(higher) = 59% and P(lower) = 41% – agreeing with the frequentist regime-indicator contrast (p = 0.485).</p>
+<div id="tbl-bayes-latest-quarter" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-bayes-latest-quarter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;13: Bayesian Negative-Binomial regime check for the latest quarter within the post-ramp window.
+</figcaption>
+<div aria-describedby="tbl-bayes-latest-quarter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 17%">
+<col style="width: 13%">
+<col style="width: 9%">
+<col style="width: 15%">
+<col style="width: 17%">
+<col style="width: 9%">
+<col style="width: 15%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>parameter</th>
+<th>mean</th>
+<th>sd</th>
+<th>hdi_2.5%</th>
+<th>hdi_97.5%</th>
+<th>r_hat</th>
+<th>ess_bulk</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>b0</td>
+<td>-10.936</td>
+<td>0.297</td>
+<td>-11.49</td>
+<td>-10.314</td>
+<td>1.0</td>
+<td>4869.0</td>
+</tr>
+<tr class="even">
+<td>b_latest</td>
+<td>0.141</td>
+<td>0.571</td>
+<td>-0.936</td>
+<td>1.314</td>
+<td>1.0</td>
+<td>5531.0</td>
+</tr>
+<tr class="odd">
+<td>alpha</td>
+<td>3.213</td>
+<td>1.7</td>
+<td>0.59</td>
+<td>6.639</td>
+<td>1.0</td>
+<td>4516.0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+<section id="risk-curve-risk-matrix" class="level3" data-number="5.0.8">
+<h3 data-number="5.0.8" class="anchored" data-anchor-id="risk-curve-risk-matrix"><span class="header-section-number">5.0.8</span> Risk curve &amp; risk matrix</h3>
+<p>Where the trend result above answers <em>how the frequency is changing</em>, this subsection places PUDO risk on a probability × impact matrix — the risk-assessment framework this paper’s core question ultimately serves. The consequence side of that placement is read off a risk curve: how the event rate falls as severity rises (<a href="#fig-risk-curve" class="quarto-xref">Figure&nbsp;11</a>). Nothing severe or fatal was observed at the PUDO level over the window.</p>
 <div id="fig-risk-curve" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-risk-curve-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="assets/fig-risk-curve.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: PUDO risk curve: event rate per 100,000 trips at each step up in consequence severity (log scale). The unfilled bar is a rule-of-three upper bound on a rate with zero observed events, not a measurement."><img src="assets/fig-risk-curve.png" class="img-fluid figure-img"></a>
+<a href="assets/fig-risk-curve.png" class="lightbox" data-gallery="quarto-lightbox-gallery-11" title="Figure&nbsp;11: PUDO risk curve: event rate per 100,000 trips at each step up in consequence severity (log scale). The unfilled bar is a rule-of-three upper bound on a rate with zero observed events, not a measurement."><img src="assets/fig-risk-curve.png" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-risk-curve-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: PUDO risk curve: event rate per 100,000 trips at each step up in consequence severity (log scale). The unfilled bar is a rule-of-three upper bound on a rate with zero observed events, not a measurement.
+Figure&nbsp;11: PUDO risk curve: event rate per 100,000 trips at each step up in consequence severity (log scale). The unfilled bar is a rule-of-three upper bound on a rate with zero observed events, not a measurement.
 </figcaption>
 </figure>
 </div>
-<p>Combining that impact reading with a probability of a PUDO complaint occurring in a given reporting quarter — <a href="#tbl-risk-basis" class="quarto-xref">Table&nbsp;9</a> compares the three formulas of <a href="#eq-prob-period" class="quarto-xref">Equation&nbsp;9</a>, <a href="#eq-prob-trip" class="quarto-xref">Equation&nbsp;10</a>, and <a href="#eq-prob-bayes" class="quarto-xref">Equation&nbsp;11</a> — places the hazard on the matrix as follows: Probability: <strong>Almost certain</strong> (posterior rate 1.97/100k trips (95% CrI 1.78-2.16); predictive P(&gt;=1 next quarter) = 1.0000). Impact: <strong>Minor</strong> (the worst consequence tier clearing 0.1/100k trips in the risk curve above). Combined risk level: <strong>Medium</strong>.</p>
+<p>Combining that impact reading with a probability of a PUDO complaint occurring in a given reporting quarter — <a href="#tbl-risk-basis" class="quarto-xref">Table&nbsp;14</a> compares the three formulas of <a href="#eq-prob-period" class="quarto-xref">Equation&nbsp;9</a>, <a href="#eq-prob-trip" class="quarto-xref">Equation&nbsp;10</a>, and <a href="#eq-prob-bayes" class="quarto-xref">Equation&nbsp;11</a> — places the hazard on the matrix as follows: Probability: <strong>Almost certain</strong> (posterior rate 1.97/100k trips (95% CrI 1.78-2.16); predictive P(&gt;=1 next quarter) = 1.0000). Impact: <strong>Minor</strong> (the worst consequence tier clearing 0.1/100k trips in the risk curve above). Combined risk level: <strong>Medium</strong>.</p>
 <div id="tbl-risk-basis" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-risk-basis-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;9: PUDO risk-matrix placement under three probability bases (impact held fixed).
+Table&nbsp;14: PUDO risk-matrix placement under three probability bases (impact held fixed).
 </figcaption>
 <div aria-describedby="tbl-risk-basis-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -981,21 +1412,21 @@ Table&nbsp;9: PUDO risk-matrix placement under three probability bases (impact h
 <div id="fig-risk-matrix" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-risk-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="assets/fig-risk-matrix.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;5: PUDO complaint hazard on a probability × impact risk matrix, placed from the data under the per_period probability basis."><img src="assets/fig-risk-matrix.png" class="img-fluid figure-img"></a>
+<a href="assets/fig-risk-matrix.png" class="lightbox" data-gallery="quarto-lightbox-gallery-12" title="Figure&nbsp;12: PUDO complaint hazard on a probability × impact risk matrix, placed from the data under the per_period probability basis."><img src="assets/fig-risk-matrix.png" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-risk-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: PUDO complaint hazard on a probability × impact risk matrix, placed from the data under the <code>per_period</code> probability basis.
+Figure&nbsp;12: PUDO complaint hazard on a probability × impact risk matrix, placed from the data under the <code>per_period</code> probability basis.
 </figcaption>
 </figure>
 </div>
 </section>
-<section id="spatial-pudo-risk" class="level3" data-number="5.0.6">
-<h3 data-number="5.0.6" class="anchored" data-anchor-id="spatial-pudo-risk"><span class="header-section-number">5.0.6</span> Spatial PUDO risk</h3>
-<p><code>AV_Incidents_Location</code> gives PUDO collision counts aggregated to the Census-tract level, per analysis quarter — the finest location this dataset ever resolves to (individual complaint/collision coordinates and <code>PUDOTravelLane</code> remain redacted, as throughout this paper). All 8 of 8 analysis quarters have usable location data, spanning two disjoint California service areas — the LA Basin and the SF Bay Area/Peninsula corridor — mapped as separate panels below rather than one map with empty Central Valley between them. Tract boundaries are U.S. Census Bureau TIGER/Line shapefiles <span class="citation" data-cites="census_tiger_tract"><a href="#ref-census_tiger_tract" role="doc-biblioref">[6]</a></span> — both the 2020- and 2010-vintage boundaries are used, since CPUC/Waymo’s tract identifiers mix tracts from both eras — rendered on an OpenStreetMap basemap <span class="citation" data-cites="openstreetmap"><a href="#ref-openstreetmap" role="doc-biblioref">[7]</a></span>.</p>
+<section id="spatial-pudo-risk" class="level3" data-number="5.0.9">
+<h3 data-number="5.0.9" class="anchored" data-anchor-id="spatial-pudo-risk"><span class="header-section-number">5.0.9</span> Spatial PUDO risk</h3>
+<p><code>AV_Incidents_Location</code> gives PUDO collision counts aggregated to the Census-tract level, per analysis quarter — the finest location this dataset ever resolves to (individual complaint/collision coordinates and <code>PUDOTravelLane</code> remain redacted, as throughout this paper). All 8 of 8 analysis quarters have usable location data, spanning two disjoint California service areas — the LA Basin and the SF Bay Area/Peninsula corridor — mapped as separate panels below rather than one map with empty Central Valley between them. Tract boundaries are U.S. Census Bureau TIGER/Line shapefiles <span class="citation" data-cites="census_tiger_tract"><a href="#ref-census_tiger_tract" role="doc-biblioref">[8]</a></span> — both the 2020- and 2010-vintage boundaries are used, since CPUC/Waymo’s tract identifiers mix tracts from both eras — rendered on an OpenStreetMap basemap <span class="citation" data-cites="openstreetmap"><a href="#ref-openstreetmap" role="doc-biblioref">[9]</a></span>.</p>
 <div id="tbl-spatial-coverage" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-spatial-coverage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;10: Geographic coverage of AV_Incidents_Location by analysis quarter: tracts reporting, tracts with at least one PUDO collision, and pooled counts (all 8/8 analysis quarters have usable data).
+Table&nbsp;15: Geographic coverage of AV_Incidents_Location by analysis quarter: tracts reporting, tracts with at least one PUDO collision, and pooled counts (all 8/8 analysis quarters have usable data).
 </figcaption>
 <div aria-describedby="tbl-spatial-coverage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -1084,12 +1515,12 @@ Table&nbsp;10: Geographic coverage of AV_Incidents_Location by analysis quarter:
 <iframe src="assets/fig-spatial-raw-sf-bay-area.html" width="100%" height="650" style="border:1px solid #ccc;" title="Interactive map: PUDO collisions by tract, SF Bay Area">
 </iframe>
 <p><em>Interactive: PUDO collisions by Census tract, SF Bay Area (2024 Q3 – 2026 Q2).</em></p>
-<p>The color scale is capped at 8 PUDO collisions rather than the true maximum of 18: collision counts per tract are heavily right-skewed (148 of 208 nonzero tracts have exactly one), so an uncapped linear scale would render almost every tract the same pale color. The two tracts above the cap (12 and 18) simply render at maximum intensity; their exact counts remain visible on hover in the HTML version and in <a href="#tbl-spatial-top-tracts" class="quarto-xref">Table&nbsp;11</a> below.</p>
+<p>The color scale is capped at 8 PUDO collisions rather than the true maximum of 18: collision counts per tract are heavily right-skewed (148 of 208 nonzero tracts have exactly one), so an uncapped linear scale would render almost every tract the same pale color. The two tracts above the cap (12 and 18) simply render at maximum intensity; their exact counts remain visible on hover in the HTML version and in <a href="#tbl-spatial-top-tracts" class="quarto-xref">Table&nbsp;16</a> below.</p>
 <p>San Francisco stands out: despite far fewer tracts than LA County (280 vs. 1,102), it accounts for the largest share of PUDO collisions (225 of 359, 63%), with the single densest concentration visible as the darkest tract in the SF Bay Area map, in San Francisco proper.</p>
 <div id="tbl-spatial-top-tracts" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-spatial-top-tracts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;11: Top 10 Census tracts by total PUDO collisions, summed across all available analysis quarters. Aggregated tract-level counts, not individual complaint locations.
+Table&nbsp;16: Top 10 Census tracts by total PUDO collisions, summed across all available analysis quarters. Aggregated tract-level counts, not individual complaint locations.
 </figcaption>
 <div aria-describedby="tbl-spatial-top-tracts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -1125,39 +1556,25 @@ Table&nbsp;11: Top 10 Census tracts by total PUDO collisions, summed across all 
 <td>2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
 </tr>
 <tr class="odd">
-<td>06075061507</td>
-<td>7.0</td>
-<td>15.0</td>
-<td>6</td>
-<td>2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
-</tr>
-<tr class="even">
 <td>06075018000</td>
 <td>7.0</td>
 <td>27.0</td>
 <td>8</td>
 <td>2024Q3, 2024Q4, 2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>06075061501</td>
 <td>7.0</td>
 <td>20.0</td>
 <td>6</td>
 <td>2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
 </tr>
-<tr class="even">
-<td>06075061500</td>
-<td>6.0</td>
-<td>8.0</td>
-<td>2</td>
-<td>2024Q3, 2024Q4</td>
-</tr>
 <tr class="odd">
-<td>06075010600</td>
-<td>6.0</td>
-<td>21.0</td>
-<td>8</td>
-<td>2024Q3, 2024Q4, 2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
+<td>06075061507</td>
+<td>7.0</td>
+<td>15.0</td>
+<td>6</td>
+<td>2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
 </tr>
 <tr class="even">
 <td>06075022600</td>
@@ -1167,18 +1584,32 @@ Table&nbsp;11: Top 10 Census tracts by total PUDO collisions, summed across all 
 <td>2024Q3, 2024Q4, 2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
 </tr>
 <tr class="odd">
-<td>06037267600</td>
+<td>06075010600</td>
+<td>6.0</td>
+<td>21.0</td>
+<td>8</td>
+<td>2024Q3, 2024Q4, 2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
+</tr>
+<tr class="even">
+<td>06075061500</td>
+<td>6.0</td>
+<td>8.0</td>
+<td>2</td>
+<td>2024Q3, 2024Q4</td>
+</tr>
+<tr class="odd">
+<td>06075020500</td>
 <td>5.0</td>
 <td>7.0</td>
 <td>8</td>
 <td>2024Q3, 2024Q4, 2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
 </tr>
 <tr class="even">
-<td>06075020702</td>
+<td>06075012100</td>
 <td>5.0</td>
-<td>7.0</td>
-<td>6</td>
-<td>2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
+<td>10.0</td>
+<td>8</td>
+<td>2024Q3, 2024Q4, 2025Q1, 2025Q2, 2025Q3, 2025Q4, 2026Q1, 2026Q2</td>
 </tr>
 </tbody>
 </table>
@@ -1189,7 +1620,7 @@ Table&nbsp;11: Top 10 Census tracts by total PUDO collisions, summed across all 
 <div id="tbl-spatial-rate-top-tracts" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-spatial-rate-top-tracts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;12: Top 10 Census tracts by PUDO-collision rate per 100k trips, 2024Q3 - 2024Q4 only (TripsStart/TripsEnd are redacted from 2025 Q1 onward, so this exposure-adjusted view cannot be extended to the rest of the study window).
+Table&nbsp;17: Top 10 Census tracts by PUDO-collision rate per 100k trips, 2024Q3 - 2024Q4 only (TripsStart/TripsEnd are redacted from 2025 Q1 onward, so this exposure-adjusted view cannot be extended to the rest of the study window).
 </figcaption>
 <div aria-describedby="tbl-spatial-rate-top-tracts-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -1276,20 +1707,20 @@ Table&nbsp;12: Top 10 Census tracts by PUDO-collision rate per 100k trips, 2024Q
 <div id="fig-spatial-rate-la" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-spatial-rate-la-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="assets/fig-spatial-rate-la-basin.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;6: PUDO collision rate per 100,000 trips by tract, LA Basin — 2024 Q3–Q4 ONLY (exposure data are redacted for every later quarter)."><img src="assets/fig-spatial-rate-la-basin.png" class="img-fluid figure-img"></a>
+<a href="assets/fig-spatial-rate-la-basin.png" class="lightbox" data-gallery="quarto-lightbox-gallery-13" title="Figure&nbsp;13: PUDO collision rate per 100,000 trips by tract, LA Basin — 2024 Q3–Q4 ONLY (exposure data are redacted for every later quarter)."><img src="assets/fig-spatial-rate-la-basin.png" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-spatial-rate-la-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6: PUDO collision rate per 100,000 trips by tract, LA Basin — 2024 Q3–Q4 ONLY (exposure data are redacted for every later quarter).
+Figure&nbsp;13: PUDO collision rate per 100,000 trips by tract, LA Basin — 2024 Q3–Q4 ONLY (exposure data are redacted for every later quarter).
 </figcaption>
 </figure>
 </div>
 <div id="fig-spatial-rate-bay" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-spatial-rate-bay-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="assets/fig-spatial-rate-sf-bay-area.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;7: PUDO collision rate per 100,000 trips by tract, SF Bay Area — 2024 Q3–Q4 ONLY (exposure data are redacted for every later quarter)."><img src="assets/fig-spatial-rate-sf-bay-area.png" class="img-fluid figure-img"></a>
+<a href="assets/fig-spatial-rate-sf-bay-area.png" class="lightbox" data-gallery="quarto-lightbox-gallery-14" title="Figure&nbsp;14: PUDO collision rate per 100,000 trips by tract, SF Bay Area — 2024 Q3–Q4 ONLY (exposure data are redacted for every later quarter)."><img src="assets/fig-spatial-rate-sf-bay-area.png" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-spatial-rate-bay-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7: PUDO collision rate per 100,000 trips by tract, SF Bay Area — 2024 Q3–Q4 ONLY (exposure data are redacted for every later quarter).
+Figure&nbsp;14: PUDO collision rate per 100,000 trips by tract, SF Bay Area — 2024 Q3–Q4 ONLY (exposure data are redacted for every later quarter).
 </figcaption>
 </figure>
 </div>
@@ -1312,7 +1743,7 @@ Figure&nbsp;7: PUDO collision rate per 100,000 trips by tract, SF Bay Area — 2
 <h2 data-number="6.2" class="anchored" data-anchor-id="assumptions"><span class="header-section-number">6.2</span> Assumptions</h2>
 <ul>
 <li>PUDO complaints are initially treated as a Poisson-type count process; the overdispersion test shows this assumption fails, so Negative-Binomial regression — not Poisson — is used for all trend inference.</li>
-<li>The Bayesian trend model’s priors are weakly informative and were checked for sensitivity (<a href="#tbl-bayes-prior-sensitivity" class="quarto-xref">Table&nbsp;8</a>) — the posterior does not depend meaningfully on the specific prior width chosen.</li>
+<li>The Bayesian trend model’s priors are weakly informative and were checked for sensitivity (<a href="#tbl-bayes-prior-sensitivity" class="quarto-xref">Table&nbsp;11</a>) — the posterior does not depend meaningfully on the specific prior width chosen.</li>
 <li>The risk matrix’s “Almost certain” probability reading assumes the relevant question is <em>will at least one PUDO complaint occur somewhere in the fleet this quarter</em> (it will), not the odds for any single trip.</li>
 <li>Complaint counts are assumed complete and consistently defined within each reporting era; the 2024 aggregate table and the 2025+ ride-level microdata are assumed to measure the same underlying thing.</li>
 </ul>
@@ -1326,12 +1757,15 @@ Figure&nbsp;7: PUDO collision rate per 100,000 trips by tract, SF Bay Area — 2
 <li>The launch-period sensitivity check further shrinks an already-small sample (post-ramp <span class="math inline">\(n = 6\)</span>), which limits its power: a non-significant post-ramp slope is also consistent with a real but smaller decline continuing, not only with no decline at all.</li>
 <li>Redaction removes all within-quarter timing and location detail, and the travel-lane PUDO signal is unavailable in every file.</li>
 <li>Single carrier, single state, eight quarters — not yet a cross-carrier or multi-state comparison.</li>
+<li>The latest-quarter contrasts (<em>Is the latest quarter different?</em>) add a further small-sample constraint on top of the post-ramp window itself: with only <span class="math inline">\(n=6\)</span> quarters and a 1-vs-5 split, they can rule out only a large shift in the most recent quarter, not a small one — the same caveat that applies to the post-ramp sensitivity check above.</li>
+<li>The potential software-release effect is a temporal association with a plausible engineering mechanism, not established causal evidence that the November–December 2024 software update changed PUDO behavior specifically.</li>
 </ul>
 </section>
 </section>
 <section id="conclusion-and-future-work" class="level1" data-number="7">
 <h1 data-number="7"><span class="header-section-number">7</span> Conclusion and Future Work</h1>
 <p>Over 2024 Q3 – 2026 Q2, the primary Negative-Binomial trend model finds Waymo’s exposure-adjusted PUDO complaint rate falling by 10.7% per quarter (95% CI −17.8% to −3.1%, <span class="math inline">\(p = 0.007\)</span>) — not the rising trend a naive raw-count reading would suggest. The launch-period sensitivity analysis indicates that decline is driven substantially by the 2024 launch-ramp quarters: restricted to 2025 Q1 – 2026 Q2, the slope is small and not statistically significant. The Bayesian refit agrees in direction but is more cautious, putting the posterior probability of an actual decline at about 90% rather than treating the frequentist <span class="math inline">\(p\)</span>-value as certainty. On a probability × impact risk matrix the hazard currently sits in the <strong>Medium</strong>, monitor-and-mitigate band: frequent enough to expect every quarter, but low-consequence, with no severe or fatal PUDO events observed. These results are still provisional (see Limitations) — in particular, the post-ramp window’s small sample cannot rule out a smaller ongoing decline, only a large one; as more CPUC quarters are published the same pipeline can extend the trend directly, and applying it to other CPUC-reporting AV carriers would turn a single-carrier trend into a cross-carrier comparison.</p>
+<p>Three distinct eras run through this update: an elevated 2024 launch/ramp period; a comparatively stable 2025–2026 operating period that begins right around a documented Waymo Driver software release (deployed fleet-wide between November 7 and December 26, 2024) — a plausible engineering explanation for the launch-period drop, though not established as causal; and the question of whether the <em>latest available</em> quarter breaks that stability. On that last question, both regression-based contrasts (a regime-indicator model and a leave-latest-out predictive check, run because neither a rank test nor a <span class="math inline">\(t\)</span>-test is valid at this sample size) and the matching Bayesian check find no statistically significant departure from the rest of the post-ramp window — the latest quarter reads as consistent with, not a break from, the 2025–2026 pattern, though the small post-ramp sample can only rule out a large shift, not a small one. Beyond this single deployment, PUDO-type complaint patterns are an early empirical data point for AV curb-side risk as deployments expand to new cities and conditions — a signal worth continuing to track as new CPUC quarters arrive, not a basis for projecting the California rates found here onto other markets.</p>
 </section>
 <section id="references" class="level1 unnumbered">
 <h1 class="unnumbered">References</h1>
@@ -1342,20 +1776,26 @@ Figure&nbsp;7: PUDO collision rate per 100,000 trips by tract, SF Bay Area — 2
 <div id="ref-statsmodels" class="csl-entry" role="listitem">
 <div class="csl-left-margin">[2] </div><div class="csl-right-inline">S. Seabold and J. Perktold, <span>“Statsmodels: Econometric and statistical modeling with <span>Python</span>,”</span> in <em>Proceedings of the 9th python in science conference (SciPy 2010)</em>, 2010, pp. 92–96. doi: <a href="https://doi.org/10.25080/Majora-92bf1922-011">10.25080/Majora-92bf1922-011</a>.</div>
 </div>
+<div id="ref-nhtsa_waymo_25e034_2025" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[3] </div><div class="csl-right-inline">National Highway Traffic Safety Administration, <span>“<span>Part 573 Safety Recall Report 25E-034: Waymo Automated Driving System Software</span>.”</span> U.S. Department of Transportation, 2025. Available: <a href="https://static.nhtsa.gov/odi/rcl/2025/RCLRPT-25E034-2471.PDF">https://static.nhtsa.gov/odi/rcl/2025/RCLRPT-25E034-2471.PDF</a></div>
+</div>
+<div id="ref-nhtsa_waymo_25e034_ack_2025" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[4] </div><div class="csl-right-inline">National Highway Traffic Safety Administration, <span>“<span>Safety Recall Acknowledgment: Recall 25E-034</span>.”</span> U.S. Department of Transportation, 2025. Available: <a href="https://static.nhtsa.gov/odi/rcl/2025/RCAK-25E034-7863.pdf">https://static.nhtsa.gov/odi/rcl/2025/RCAK-25E034-7863.pdf</a></div>
+</div>
 <div id="ref-mann1945" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[3] </div><div class="csl-right-inline">H. B. Mann, <span>“Nonparametric tests against trend,”</span> <em>Econometrica</em>, vol. 13, no. 3, pp. 245–259, 1945, doi: <a href="https://doi.org/10.2307/1907187">10.2307/1907187</a>.</div>
+<div class="csl-left-margin">[5] </div><div class="csl-right-inline">H. B. Mann, <span>“Nonparametric tests against trend,”</span> <em>Econometrica</em>, vol. 13, no. 3, pp. 245–259, 1945, doi: <a href="https://doi.org/10.2307/1907187">10.2307/1907187</a>.</div>
 </div>
 <div id="ref-kendall1975" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[4] </div><div class="csl-right-inline">M. G. Kendall, <em>Rank correlation methods</em>, 4th ed. London: Charles Griffin, 1975.</div>
+<div class="csl-left-margin">[6] </div><div class="csl-right-inline">M. G. Kendall, <em>Rank correlation methods</em>, 4th ed. London: Charles Griffin, 1975.</div>
 </div>
 <div id="ref-pymc" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[5] </div><div class="csl-right-inline">O. Abril-Pla <em>et al.</em>, <span>“<span>PyMC</span>: A modern and comprehensive probabilistic programming framework in <span>Python</span>,”</span> <em>PeerJ Computer Science</em>, vol. 9, p. e1516, 2023, doi: <a href="https://doi.org/10.7717/peerj-cs.1516">10.7717/peerj-cs.1516</a>.</div>
+<div class="csl-left-margin">[7] </div><div class="csl-right-inline">O. Abril-Pla <em>et al.</em>, <span>“<span>PyMC</span>: A modern and comprehensive probabilistic programming framework in <span>Python</span>,”</span> <em>PeerJ Computer Science</em>, vol. 9, p. e1516, 2023, doi: <a href="https://doi.org/10.7717/peerj-cs.1516">10.7717/peerj-cs.1516</a>.</div>
 </div>
 <div id="ref-census_tiger_tract" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[6] </div><div class="csl-right-inline">U.S. Census Bureau, <span>“<span>TIGER/Line</span> shapefiles: Census tracts.”</span> 2024. Available: <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html">https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html</a></div>
+<div class="csl-left-margin">[8] </div><div class="csl-right-inline">U.S. Census Bureau, <span>“<span>TIGER/Line</span> shapefiles: Census tracts.”</span> 2024. Available: <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html">https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html</a></div>
 </div>
 <div id="ref-openstreetmap" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[7] </div><div class="csl-right-inline">OpenStreetMap contributors, <span>“<span>OpenStreetMap</span>.”</span> 2026. Available: <a href="https://www.openstreetmap.org">https://www.openstreetmap.org</a></div>
+<div class="csl-left-margin">[9] </div><div class="csl-right-inline">OpenStreetMap contributors, <span>“<span>OpenStreetMap</span>.”</span> 2026. Available: <a href="https://www.openstreetmap.org">https://www.openstreetmap.org</a></div>
 </div>
 </div>
 
